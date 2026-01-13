@@ -117,45 +117,48 @@ function renderInterviews(list){
 
 // Cargar datos desde el backend al iniciar
 async function loadDataFromBackend(){
-  // Cargar reportes desde Hoja 1
-  try{
-    const res = await fetch('/sheet?name=Hoja 1');
-    if(res.ok){
-      const data = await res.json();
-      console.log('Datos recibidos del backend (Hoja 1):', data);
-      if(Array.isArray(data) && data.length){
-        reports.length = 0;
-        data.forEach(r => reports.push(r));
-        console.log('Reportes cargados:', reports.length);
-      } else {
-        console.warn('No hay datos en la respuesta o formato incorrecto');
-      }
-    } else {
-      console.error('Error en la respuesta del servidor:', res.status, res.statusText);
-    }
-  }catch(err){ console.warn('Error cargando datos iniciales:', err); }
+  // Intentar cargar desde servidor local primero
+  let useLocalServer = false;
+  try {
+    const testRes = await fetch('/sheet?name=Hoja 1');
+    if(testRes.ok) useLocalServer = true;
+  } catch(e) { /* Servidor local no disponible */ }
   
-  // Cargar entrevistas desde Hoja 2
-  try{
-    console.log('Intentando cargar entrevistas desde Hoja 2...');
-    const res = await fetch('/sheet?name=Hoja 2');
-    console.log('Respuesta de Hoja 2 - Status:', res.status);
-    if(res.ok){
-      const data = await res.json();
-      console.log('Entrevistas recibidas (Hoja 2):', data);
-      if(Array.isArray(data)){
-        interviews.length = 0;
-        data.forEach(i => interviews.push(i));
-        console.log('✅ Entrevistas cargadas:', interviews.length);
-      } else {
-        console.warn('⚠️ Formato de datos de entrevistas incorrecto:', data);
+  if(useLocalServer) {
+    // Cargar reportes desde servidor local
+    try{
+      const res = await fetch('/sheet?name=Hoja 1');
+      if(res.ok){
+        const data = await res.json();
+        console.log('Datos recibidos del backend (Hoja 1):', data);
+        if(Array.isArray(data) && data.length){
+          reports.length = 0;
+          data.forEach(r => reports.push(r));
+          console.log('Reportes cargados:', reports.length);
+        }
       }
-    } else {
-      const errorText = await res.text();
-      console.error('❌ Error cargando entrevistas:', res.status, errorText);
+    }catch(err){ console.warn('Error cargando datos iniciales:', err); }
+    
+    // Cargar entrevistas desde servidor local
+    try{
+      console.log('Intentando cargar entrevistas desde Hoja 2...');
+      const res = await fetch('/sheet?name=Hoja 2');
+      if(res.ok){
+        const data = await res.json();
+        console.log('Entrevistas recibidas (Hoja 2):', data);
+        if(Array.isArray(data)){
+          interviews.length = 0;
+          data.forEach(i => interviews.push(i));
+          console.log('✅ Entrevistas cargadas:', interviews.length);
+        }
+      }
+    }catch(err){ 
+      console.error('❌ Error al hacer fetch de entrevistas:', err); 
     }
-  }catch(err){ 
-    console.error('❌ Error al hacer fetch de entrevistas:', err); 
+  } else {
+    // Usar Google Sheets público (GViz)
+    console.log('🌐 Usando Google Sheets público (GViz)');
+    await loadFromSheets();
   }
   
   render(reports);
@@ -393,9 +396,9 @@ if(interviewForm){
   // 3) Haz la hoja visible: Compartir -> Cualquiera con el enlace -> Ver (o publica en web).
   // 4) Copia el ID de la hoja (parte entre /d/ y /edit) y ponlo en SHEET_ID abajo.
 
-  const SHEET_ID = ''; // poner aquí el ID si quieres cargar desde Sheets
-  const REPORTS_SHEET = 'reports';
-  const ELDERS_SHEET = 'elders';
+  const SHEET_ID = '1LQL5cnyEynGWxrO-K4BtRjHonGUPjyam19wCziYqqzs'; // poner aquí el ID si quieres cargar desde Sheets
+  const REPORTS_SHEET = 'Hoja 1';
+  const INTERVIEWS_SHEET = 'Hoja 2';
 
   function parseGvizText(text){
     // El endpoint devuelve: google.visualization.Query.setResponse({...});
@@ -429,40 +432,44 @@ if(interviewForm){
   async function loadFromSheets(){
     if(!SHEET_ID) return; // no configurado
     try{
-      const [rdata, edata] = await Promise.all([
+      const [rdata, idata] = await Promise.all([
         fetchSheet(SHEET_ID, REPORTS_SHEET),
-        fetchSheet(SHEET_ID, ELDERS_SHEET)
+        fetchSheet(SHEET_ID, INTERVIEWS_SHEET)
       ]);
-      // Normalizar y asignar
+      // Normalizar reportes
       if(Array.isArray(rdata) && rdata.length) {
-        // mapear campos mínimos
         reports.length = 0;
         rdata.forEach(row => {
           reports.push({
             id: row.id || (reports.length+1),
-            title: row.title || row.titulo || '',
-            description: row.description || row.desc || '',
-            date: row.date || row.fecha || '',
-            link: row.link || row.enlace || ''
+            title: row.title || '',
+            description: row.description || '',
+            date: row.date || '',
+            link: row.link || ''
           });
         });
         render(reports);
       }
-      if(Array.isArray(edata) && edata.length){
-        elders.length = 0;
-        edata.forEach(row => {
-          elders.push({
-            name: row.name || row.nombre || '',
-            role: row.role || row.rol || '',
-            img: row.img || row.imagen || ''
+      // Normalizar entrevistas
+      if(Array.isArray(idata) && idata.length){
+        interviews.length = 0;
+        idata.forEach(row => {
+          interviews.push({
+            id: row.id || (interviews.length+1),
+            nombre: row.nombre || '',
+            fecha: row.fecha || '',
+            hora: row.hora || '',
+            lugar: row.lugar || '',
+            notas: row.notas || '',
+            estado: row.estado || 'Pendiente'
           });
         });
-        renderElders(elders);
+        renderInterviews(interviews);
       }
     }catch(err){
       console.warn('Error cargando Sheets:', err);
     }
   }
 
-  // intenta cargar si se configuró SHEET_ID
-  loadFromSheets();
+  // NO cargar automáticamente - se llama desde loadDataFromBackend si es necesario
+  // loadFromSheets();

@@ -11,7 +11,7 @@ app.use(express.static('.')); // Servir archivos estáticos como index.html
 
 // CONFIG -----------------------------------------------------------
 // Cambia estos valores según tu proyecto / credenciales
-const CREDS_FILE = './reportes-484212-42020a60e8a9.json'; // archivo de credenciales de cuenta de servicio
+const CREDS_FILE = './reportes.json'; // archivo de credenciales de cuenta de servicio
 const SHEET_ID = process.env.SHEET_ID || ''; // pon aquí el ID de la hoja o exporta SHEET_ID en el entorno
 
 if (!fs.existsSync(CREDS_FILE)) {
@@ -20,12 +20,17 @@ if (!fs.existsSync(CREDS_FILE)) {
 
 async function getAuthorizedClient(){
   if(!SHEET_ID) throw new Error('SHEET_ID no está configurado. Exporta SHEET_ID o edita server.js');
+  
+  // Leer credenciales
+  delete require.cache[require.resolve(CREDS_FILE)]; // limpiar cache
   const creds = require(CREDS_FILE);
+  
   const auth = new google.auth.JWT({
     email: creds.client_email,
-    key: creds.private_key.replace(/\\n/g, '\n'),
+    key: creds.private_key, // require() ya parsea correctamente los \n
     scopes: ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.readonly']
   });
+  
   await auth.authorize();
   return auth;
 }

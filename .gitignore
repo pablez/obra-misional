@@ -1,0 +1,28 @@
+# Archivos de credenciales sensibles - NUNCA subir a GitHub
+*.json
+reportes*.json
+*credentials*.json
+
+# Node modules
+node_modules/
+package-lock.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment variables
+.env
+.env.local
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

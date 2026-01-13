@@ -117,11 +117,12 @@ function renderInterviews(list){
 
 // Cargar datos desde el backend al iniciar
 async function loadDataFromBackend(){
+  // Cargar reportes desde Hoja 1
   try{
     const res = await fetch('/sheet?name=Hoja 1');
     if(res.ok){
       const data = await res.json();
-      console.log('Datos recibidos del backend:', data);
+      console.log('Datos recibidos del backend (Hoja 1):', data);
       if(Array.isArray(data) && data.length){
         reports.length = 0;
         data.forEach(r => reports.push(r));
@@ -136,17 +137,26 @@ async function loadDataFromBackend(){
   
   // Cargar entrevistas desde Hoja 2
   try{
+    console.log('Intentando cargar entrevistas desde Hoja 2...');
     const res = await fetch('/sheet?name=Hoja 2');
+    console.log('Respuesta de Hoja 2 - Status:', res.status);
     if(res.ok){
       const data = await res.json();
-      console.log('Entrevistas recibidas:', data);
-      if(Array.isArray(data) && data.length){
+      console.log('Entrevistas recibidas (Hoja 2):', data);
+      if(Array.isArray(data)){
         interviews.length = 0;
         data.forEach(i => interviews.push(i));
-        console.log('Entrevistas cargadas:', interviews.length);
+        console.log('✅ Entrevistas cargadas:', interviews.length);
+      } else {
+        console.warn('⚠️ Formato de datos de entrevistas incorrecto:', data);
       }
+    } else {
+      const errorText = await res.text();
+      console.error('❌ Error cargando entrevistas:', res.status, errorText);
     }
-  }catch(err){ console.warn('Error cargando entrevistas:', err); }
+  }catch(err){ 
+    console.error('❌ Error al hacer fetch de entrevistas:', err); 
+  }
   
   render(reports);
   renderInterviews(interviews);

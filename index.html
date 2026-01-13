@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reportes — La Chimba</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header" role="banner">
+    <div class="brand">
+      <img src="./images/logo-180x348.png" alt="La Iglesia de Jesucristo - Logo" class="logo" />
+      <div class="brand-text">
+        <h1>Reportes — La Chimba</h1>
+        <p class="subtitle">Seguimiento de reportes — enlaces a documentos en Google Drive</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="controls">
+      <div class="controls-row">
+        <input id="search" type="search" placeholder="Buscar reportes por título..." aria-label="Buscar reportes">
+        <button id="refreshBtn" class="btn btn-ghost">Refrescar</button>
+        <button id="newBtn" class="btn btn-primary">Agregar reporte</button>
+      </div>
+      <div id="formPanel" class="form-panel hidden" aria-hidden="true">
+        <h3 id="formTitle">Agregar reporte</h3>
+        <form id="reportForm">
+          <div class="form-row"><label>Título</label><input name="title" required></div>
+          <div class="form-row"><label>Descripción</label><textarea name="description"></textarea></div>
+          <div class="form-row"><label>Fecha</label><input name="date" type="date"></div>
+          <div class="form-row"><label>Enlace (Drive)</label><input name="link" type="url"></div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <button type="button" id="cancelForm" class="btn btn-ghost">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section id="reports" class="reports-grid" aria-live="polite"></section>
+    
+    <section id="elders" class="elders-section">
+      <h2>Misioneros</h2>
+      <p class="subtitle small">Conoce a los elderes de la zona</p>
+      <div id="eldersGrid" class="elders-grid" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>Abre los documentos en una nueva pestaña. Esta página sólo presenta enlaces a Google Drive.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

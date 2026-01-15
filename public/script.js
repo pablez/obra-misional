@@ -226,46 +226,79 @@ function createDayElement(dayNum, isOtherMonth, isToday = false, year = currentY
 }
 
 function showDayInterviews(date, dayInterviews) {
+  const hours = ['06:00', '06:30', '07:00', '07:30', '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30'];
+  const hourLabels = ['6:00', '6:30', '7:00', '7:30', '8:00', '8:30', '9:00', '9:30', '10:00', '10:30', '11:00', '11:30'];
+  
   const modal = document.createElement('div');
-  modal.style.cssText = `
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5); display: flex; align-items: center;
-    justify-content: center; z-index: 1000; padding: 20px;
-  `;
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;';
   
   const content = document.createElement('div');
-  content.style.cssText = `
-    background: var(--card); padding: 24px; border-radius: 12px;
-    max-width: 500px; width: 100%; max-height: 80vh; overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  `;
+  content.style.cssText = 'background:var(--card);padding:24px;border-radius:12px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
   
-  content.innerHTML = `
-    <h3 style="margin: 0 0 16px; color: var(--accent-dark);">
-      📅 Entrevistas del ${new Date(date + 'T12:00:00').toLocaleDateString('es-ES', {day: 'numeric', month: 'long', year: 'numeric'})}
-    </h3>
-    ${dayInterviews.map(i => `
-      <div style="margin-bottom: 16px; padding: 12px; background: var(--bg); border-radius: 8px; border-left: 4px solid var(--accent);">
-        <h4 style="margin: 0 0 8px; color: var(--accent-dark);">${escapeHtml(i.nombre)}</h4>
-        <div style="font-size: 0.9rem; color: var(--muted); margin-bottom: 8px;">
-          🕐 ${escapeHtml(i.hora || 'Sin hora')} | 📍 ${escapeHtml(i.lugar || 'Sin lugar')}
-        </div>
-        ${i.notas ? `<p style="margin: 0; font-size: 0.9rem;">${escapeHtml(i.notas)}</p>` : ''}
-        <span class="interview-status ${(i.estado || 'pendiente').toLowerCase()}" style="display: inline-block; margin-top: 8px;">
-          ${escapeHtml(i.estado || 'Pendiente')}
-        </span>
-      </div>
-    `).join('')}
-    <button class="btn btn-primary" style="width: 100%; margin-top: 16px;">Cerrar</button>
-  `;
+  const dateObj = new Date(date + 'T12:00:00');
+  const dateStr = dateObj.toLocaleDateString('es-ES', {day:'numeric',month:'long',year:'numeric'});
   
-  content.querySelector('button').addEventListener('click', () => modal.remove());
-  modal.addEventListener('click', (e) => {
-    if(e.target === modal) modal.remove();
+  let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><h3 style="margin:0;color:var(--accent-dark);">📅 ' + dateStr + '</h3><button class="close-modal" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);">✕</button></div>';
+  html += '<div style="font-weight:600;color:var(--accent-dark);margin-bottom:12px;font-size:1.1rem;">⏰ Horarios (6:00 AM - 11:30 AM):</div>';
+  
+  hours.forEach((hour, idx) => {
+    const interview = dayInterviews.find(i => i.hora === hour);
+    const isOccupied = !!interview;
+    const color = isOccupied ? '#ef4444' : '#10b981';
+    const bg = isOccupied ? 'rgba(239,68,68,0.08)' : 'rgba(16,185,129,0.08)';
+    const btnBg = isOccupied ? '#ff6b6b' : '#60a5fa';
+    const btnText = isOccupied ? 'Editar' : 'Crear';
+    
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;margin-bottom:8px;background:' + bg + ';border-left:4px solid ' + color + ';border-radius:8px;"><div style="flex:1;"><div style="font-weight:600;color:var(--accent-dark);">' + hourLabels[idx] + '</div>';
+    if(isOccupied) {
+      html += '<strong style="color:#ef4444;">' + escapeHtml(interview.nombre) + '</strong><div style="color:var(--muted);font-size:0.8rem;">📍 ' + escapeHtml(interview.lugar || 'Sin lugar') + '</div>';
+    } else {
+      html += '<div style="color:#10b981;font-weight:500;">✓ Disponible</div>';
+    }
+    html += '</div><button class="btn-edit-time" data-hour="' + hour + '" data-interview-id="' + (isOccupied ? interview.id : '') + '" style="padding:6px 12px;font-size:0.75rem;background:' + btnBg + ';color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">' + (isOccupied ? '✏️ ' : '➕ ') + btnText + '</button></div>';
   });
   
+  html += '<div style="margin-top:20px;padding-top:12px;border-top:1px solid rgba(11,96,209,0.1);"><button class="btn btn-primary" id="closeModalBtn" style="width:100%;">Cerrar</button></div>';
+  content.innerHTML = html;
   modal.appendChild(content);
   document.body.appendChild(modal);
+  
+  const closeBtn = content.querySelector('.close-modal');
+  const closeBtnPrimary = content.querySelector('#closeModalBtn');
+  closeBtn.addEventListener('click', () => modal.remove());
+  closeBtnPrimary.addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', (e) => { if(e.target === modal) modal.remove(); });
+  
+  content.querySelectorAll('.btn-edit-time').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const hour = btn.dataset.hour;
+      const interviewId = btn.dataset.interviewId;
+      if(interviewId) {
+        const interview = interviews.find(i => String(i.id) === String(interviewId));
+        if(interview) {
+          modal.remove();
+          interviewForm.dataset.mode = 'edit';
+          interviewForm.dataset.editId = interviewId;
+          interviewForm.nombre.value = interview.nombre || '';
+          interviewForm.fecha.value = interview.fecha || '';
+          interviewForm.hora.value = interview.hora || '';
+          interviewForm.lugar.value = interview.lugar || '';
+          interviewForm.notas.value = interview.notas || '';
+          interviewForm.estado.value = interview.estado || 'Pendiente';
+          document.getElementById('interviewFormTitle').textContent = 'Editar entrevista';
+          toggleInterviewForm(true);
+        }
+      } else {
+        modal.remove();
+        interviewForm.dataset.mode = 'create';
+        interviewForm.reset();
+        interviewForm.fecha.value = date;
+        interviewForm.hora.value = hour;
+        document.getElementById('interviewFormTitle').textContent = 'Agregar entrevista';
+        toggleInterviewForm(true);
+      }
+    });
+  });
 }
 
 // Navegación del calendario
@@ -351,15 +384,15 @@ async function loadDataFromBackend(){
         if(Array.isArray(data)){
           interviews.length = 0;
           data.forEach(i => interviews.push(i));
-          console.log('✅ Entrevistas cargadas:', interviews.length);
+          console.log('Entrevistas cargadas:', interviews.length);
         }
       }
     }catch(err){ 
-      console.error('❌ Error al hacer fetch de entrevistas:', err); 
+      console.error('Error al hacer fetch de entrevistas:', err); 
     }
   } else {
     // Usar Google Sheets público (GViz)
-    console.log('🌐 Usando Google Sheets público (GViz)');
+    console.log('Usando Google Sheets público (GViz)');
     await loadFromSheets();
   }
   
@@ -590,22 +623,19 @@ if(interviewForm){
   });
 }
 
-  /* ------------------ Google Sheets loader (GViz) ------------------ */
+  /* Google Sheets loader (GViz) */
   // Opcional: usa Google Sheets pública como base de datos.
   // Pasos rápidos para usar:
   // 1) Crea una Google Sheet con dos pestañas: 'reports' y 'elders'.
-  // 2) En cada pestaña la primera fila debe ser cabeceras: por ejemplo
-  //    reports: id,title,description,date,link
-  //    elders: name,role,img
-  // 3) Haz la hoja visible: Compartir -> Cualquiera con el enlace -> Ver (o publica en web).
+  // 2) En cada pestaña la primera fila debe ser cabeceras
+  // 3) Haz la hoja visible: Compartir -> Cualquiera con el enlace -> Ver
   // 4) Copia el ID de la hoja (parte entre /d/ y /edit) y ponlo en SHEET_ID abajo.
 
-  const SHEET_ID = '1LQL5cnyEynGWxrO-K4BtRjHonGUPjyam19wCziYqqzs'; // poner aquí el ID si quieres cargar desde Sheets
+  const SHEET_ID = '1LQL5cnyEynGWxrO-K4BtRjHonGUPjyam19wCziYqqzs';
   const REPORTS_SHEET = 'Hoja 1';
   const INTERVIEWS_SHEET = 'Hoja 2';
 
   function parseGvizText(text){
-    // El endpoint devuelve: google.visualization.Query.setResponse({...});
     const start = text.indexOf('(');
     const end = text.lastIndexOf(')');
     const jsonText = text.substring(start+1, end);
@@ -634,7 +664,7 @@ if(interviewForm){
   }
 
   async function loadFromSheets(){
-    if(!SHEET_ID) return; // no configurado
+    if(!SHEET_ID) return;
     try{
       const [rdata, idata] = await Promise.all([
         fetchSheet(SHEET_ID, REPORTS_SHEET),
@@ -674,6 +704,3 @@ if(interviewForm){
       console.warn('Error cargando Sheets:', err);
     }
   }
-
-  // NO cargar automáticamente - se llama desde loadDataFromBackend si es necesario
-  // loadFromSheets();

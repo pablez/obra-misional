@@ -87,10 +87,16 @@ body{margin:0;font-family:Segoe UI, Roboto, Arial, sans-serif;background:var(--b
 .calendar-day{min-height:120px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:8px;border-radius:8px;border:1px solid rgba(11,96,209,0.1);background:var(--bg);position:relative;cursor:pointer;transition:all 0.2s ease;overflow:hidden}
 .calendar-day:hover{transform:scale(1.02);box-shadow:0 4px 12px rgba(11,96,209,0.15);border-color:var(--accent-2)}
 .calendar-day.other-month{opacity:0.3;pointer-events:none}
-.calendar-day.today{background:var(--accent);color:#fff;font-weight:700;border-color:var(--accent-dark)}
-.calendar-day.today .day-number{color:#fff}
-.calendar-day.today .day-interview-item{background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.3)}
-.calendar-day.today .interview-name,.calendar-day.today .interview-time{color:#fff}
+.calendar-day.today{
+  /* Mantener legibilidad: no usar fondo sólido que oculte texto */
+  background: linear-gradient(135deg, rgba(11,96,209,0.12), rgba(96,165,250,0.06));
+  border-color: var(--accent-dark);
+  box-shadow: 0 6px 18px rgba(11,96,209,0.08);
+  font-weight:700;
+}
+.calendar-day.today .day-number{color:var(--accent-dark)}
+.calendar-day.today .day-interview-item{background:rgba(11,96,209,0.08);border-left-color:var(--accent-dark)}
+.calendar-day.today .interview-name,.calendar-day.today .interview-time{color:var(--accent-dark)}
 .calendar-day.has-interview{background:linear-gradient(135deg,rgba(11,96,209,0.08),rgba(96,165,250,0.08));border-color:var(--accent);font-weight:600}
 .day-number{font-size:1rem;font-weight:700;color:#1f2937;margin-bottom:6px;width:100%;text-align:left}
 .day-interview-item{width:100%;background:rgba(11,96,209,0.1);border-left:3px solid var(--accent);padding:4px 6px;border-radius:4px;margin-bottom:4px;font-size:0.7rem;line-height:1.3}

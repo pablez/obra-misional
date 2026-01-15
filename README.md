@@ -1,53 +1,108 @@
-# Reportes — La Chimba
+# 📊 Reportes - La Chimba
 
-Pequeña página responsiva para presentar enlaces a documentos de Google Drive (servir como vitrina de reportes).
+Aplicación web para gestión de reportes misioneros usando Google Sheets como base de datos, desplegada en Netlify con arquitectura serverless.
 
-Uso rápido
+## 🏗️ Arquitectura
 
-- Abrir `index.html` en un navegador. Para evitar restricciones de CORS al usar `fetch`, es recomendable servir con un servidor HTTP simple.
-
-Comandos para servir localmente:
-
-Windows (PowerShell):
-
-```powershell
-python -m http.server 5500
+```
+📁 Proyecto/
+├── 📁 public/              # Frontend estático (servido por CDN)
+│   ├── index.html          # Interfaz principal
+│   ├── script.js           # Lógica del cliente
+│   ├── styles.css          # Estilos
+│   └── 📁 images/          # Recursos gráficos
+│
+├── 📁 netlify/functions/   # Backend serverless
+│   ├── datos.js            # GET /datos - Primera hoja
+│   ├── sheet.js            # GET /sheet?name=X - Hoja específica
+│   ├── append.js           # POST /sheet/append - Agregar fila
+│   ├── update.js           # PUT /sheet/update - Actualizar fila
+│   └── clear.js            # POST /sheet/clear - Limpiar rango
+│
+├── netlify.toml            # Configuración de Netlify
+├── package.json            # Dependencias
+├── .env.example            # Template de variables
+└── DEPLOY.md               # Guía de despliegue
 ```
 
-Luego abrir http://localhost:5500 en el navegador.
+## ✨ Características
 
-Cómo añadir reportes
+- ✅ **Serverless** - Sin servidor que mantener
+- ✅ **CDN Global** - Contenido servido desde edge locations
+- ✅ **Google Sheets API** - Base de datos en tiempo real
+- ✅ **Responsive** - Funciona en móviles y desktop
+- ✅ **CRUD Completo** - Crear, leer, actualizar reportes
+- ✅ **Despliegue Continuo** - Auto-deploy desde Git
 
-- Edita `script.js` y agrega objetos al array `reports` con las propiedades: `title`, `description`, `date`, `link`.
+## 🚀 Inicio Rápido
 
-Notas
+### Desarrollo Local
 
-- Esta página sólo muestra enlaces; la gestión de permisos en Google Drive debe configurarse en Drive para que otros puedan abrir los documentos.
-- Puedo extenderla para cargar los enlaces desde un archivo JSON externo o desde Google Sheets si lo deseas.
- 
-## Agregar el logo
-
-- Coloca el archivo de imagen del logo en la raíz del proyecto con el nombre `logo.png`.
-- Tamaño recomendado: 200x200 px (se ajustará a 56x56 px en el header). Usa PNG con fondo transparente si es posible.
-- Si prefieres usar una URL pública para el logo, edita `index.html` cambiando `src="logo.png"` por la URL.
-
-Nota: He añadido un `logo.svg` placeholder en la carpeta del proyecto y actualicé `index.html` para usarlo. Si quieres que use exactamente la imagen que subiste (PNG), puedes subirla con el nombre `logo.png` en esta carpeta o indicarme que la guarde por ti y la nombro `logo.png`.
-
-## Backend opcional: usar Google Sheets privado (cuenta de servicio)
-
-He añadido un servidor Express (`server.js`) que puede leer hojas de cálculo privadas usando una cuenta de servicio y exponer endpoints JSON.
-
-Pasos para usarlo:
-
-- Coloca tu archivo de credenciales de cuenta de servicio (JSON) en la raíz del proyecto. Nombre sugerido: `reportes-484212-42020a60e8a9.json`.
-- Asegúrate de compartir la Google Sheet con el `client_email` que aparece en el JSON (por ejemplo: `obra-misional@reportes-484212.iam.gserviceaccount.com`) con permiso de lectura.
-- Añade el ID de la hoja de cálculo al entorno o en `server.js` (variable `SHEET_ID`). El ID es la parte entre `/d/` y `/edit` en la URL de la hoja.
-
-Ejecutar servidor (instala dependencias primero si no lo hiciste):
-
-```powershell
+```bash
+# Instalar dependencias
 npm install
-setx SHEET_ID "TU_SHEET_ID_AQUI"  # (opcional) o exporta en PowerShell
+
+# Configurar variables de entorno
+cp .env.example .env
+# Edita .env con tus credenciales
+
+# Ejecutar en desarrollo
+npm run dev
+```
+
+### Despliegue a Producción
+
+Consulta [DEPLOY.md](DEPLOY.md) para instrucciones completas de despliegue en Netlify.
+
+## 🔧 Tecnologías
+
+- **Frontend**: HTML5, CSS3, JavaScript vanilla
+- **Backend**: Netlify Functions (Node.js)
+- **Base de datos**: Google Sheets API
+- **Hosting**: Netlify (JAMstack)
+- **APIs**: googleapis ^170.0.0
+
+## 📝 Configuración
+
+### Variables de Entorno Requeridas
+
+```env
+SHEET_ID=tu_google_spreadsheet_id
+GOOGLE_CLIENT_EMAIL=service-account@proyecto.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+```
+
+### Estructura de Google Sheets
+
+#### Hoja 1: Reportes
+| id | title | description | date | link | name | role |
+|----|-------|-------------|------|------|------|------|
+
+#### Hoja 2: Entrevistas
+| id | nombre | fecha | hora | lugar | notas | estado |
+|----|--------|-------|------|-------|-------|--------|
+
+## 📚 Documentación
+
+- [Guía de Despliegue](DEPLOY.md) - Instrucciones paso a paso
+- [Netlify Functions Docs](https://docs.netlify.com/functions/overview/)
+- [Google Sheets API](https://developers.google.com/sheets/api)
+
+## 🔐 Seguridad
+
+- ✅ Credenciales en variables de entorno
+- ✅ `.gitignore` configurado para archivos sensibles
+- ✅ CORS configurado en functions
+- ✅ Headers de seguridad en Netlify
+
+## 📄 Licencia
+
+ISC
+
+---
+
+**Versión**: 2.0.0 (Arquitectura Netlify)
+
 npm start
 ```
 

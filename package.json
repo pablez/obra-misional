@@ -1,22 +1,22 @@
 {
   "name": "reportes",
-  "version": "1.0.0",
-  "description": "Pequeña página responsiva para presentar enlaces a documentos de Google Drive (servir como vitrina de reportes).",
-  "main": "script.js",
+  "version": "2.0.0",
+  "description": "Aplicación de reportes con Google Sheets - Optimizada para Netlify",
+  "main": "public/script.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "netlify dev",
+    "dev": "netlify dev",
+    "build": "echo 'Build completado'",
+    "deploy": "netlify deploy --prod"
   },
-  "keywords": [],
+  "keywords": ["netlify", "serverless", "google-sheets", "jamstack"],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "cors": "^2.8.5",
-    "exceljs": "^4.4.0",
-    "express": "^5.2.1",
-    "google-auth-library": "^10.5.0",
-    "google-spreadsheet": "^5.0.2",
     "googleapis": "^170.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
   }
 }

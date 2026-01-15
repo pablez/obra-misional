@@ -1,0 +1,55 @@
+# Configuración de Netlify
+[build]
+  # Carpeta donde están los archivos estáticos (frontend)
+  publish = "public"
+  
+  # Comando de build (no necesario para sitio estático, pero puedes agregar si usas bundlers)
+  command = "echo 'Build completado'"
+
+# Configuración de las Functions
+[functions]
+  directory = "netlify/functions"
+  # Tiempo de ejecución de las functions (en segundos)
+  node_bundler = "esbuild"
+
+# Redirects y Rewrites
+# Las Netlify Functions se sirven automáticamente en /.netlify/functions/[nombre]
+# Pero para mantener compatibilidad con tu código actual, creamos aliases:
+[[redirects]]
+  from = "/datos"
+  to = "/.netlify/functions/datos"
+  status = 200
+
+[[redirects]]
+  from = "/sheet"
+  to = "/.netlify/functions/sheet"
+  status = 200
+
+[[redirects]]
+  from = "/sheet/append"
+  to = "/.netlify/functions/append"
+  status = 200
+
+[[redirects]]
+  from = "/sheet/update"
+  to = "/.netlify/functions/update"
+  status = 200
+
+[[redirects]]
+  from = "/sheet/clear"
+  to = "/.netlify/functions/clear"
+  status = 200
+
+# SPA fallback - todas las rutas no encontradas van al index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers de seguridad
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer-when-downgrade"

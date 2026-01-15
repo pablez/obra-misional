@@ -1,6 +1,5 @@
 # Archivos de credenciales sensibles - NUNCA subir a GitHub
-*.json
-reportes*.json
+reportes.json
 *credentials*.json
 
 # Node modules
@@ -26,3 +25,10 @@ desktop.ini
 *.swp
 *.swo
 *~
+
+# Netlify
+.netlify/
+
+# Build outputs
+dist/
+build/

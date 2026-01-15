@@ -654,20 +654,28 @@ if(interviewForm){
             }) 
           });
           if(res.ok){ 
+            console.log('Entrevista actualizada en Excel');
             toggleInterviewForm(false); 
             document.getElementById('interviewFormTitle').textContent = 'Agregar entrevista';
-            loadDataFromBackend();
+            await loadDataFromBackend();
             return; 
+          } else {
+            console.error('Error en respuesta del servidor:', res.status);
           }
-        }catch(err){ console.warn('Error actualizando entrevista', err); }
+        }catch(err){ 
+          console.error('Error actualizando entrevista:', err); 
+        }
         Object.assign(interview, payload);
         renderInterviews(interviews);
+        renderCalendar(currentYear, currentMonth);
       }
       toggleInterviewForm(false);
       document.getElementById('interviewFormTitle').textContent = 'Agregar entrevista';
     } else {
       const newId = Date.now();
+      const newInterview = { id: newId, ...payload };
       try{
+        console.log('Intentando guardar entrevista:', newInterview);
         const res = await fetch('/sheet/append', { 
           method: 'POST', 
           headers: {'Content-Type':'application/json'}, 
@@ -677,14 +685,25 @@ if(interviewForm){
           }) 
         });
         if(res.ok){ 
-          toggleInterviewForm(false); 
-          loadDataFromBackend();
+          console.log('Entrevista guardada en Excel exitosamente');
+          toggleInterviewForm(false);
+          document.getElementById('interviewFormTitle').textContent = 'Agregar entrevista';
+          await loadDataFromBackend();
           return; 
+        } else {
+          console.error('Error en respuesta del servidor:', res.status, res.statusText);
+          const errorText = await res.text();
+          console.error('Error details:', errorText);
         }
-      }catch(err){ console.warn('No backend append interview', err); }
-      interviews.push({ id: Date.now(), ...payload });
+      }catch(err){ 
+        console.error('Error al guardar entrevista:', err); 
+      }
+      // Fallback local
+      interviews.push(newInterview);
       renderInterviews(interviews);
+      renderCalendar(currentYear, currentMonth);
       toggleInterviewForm(false);
+      console.log('Entrevista guardada localmente (offline mode)');
     }
   });
 }

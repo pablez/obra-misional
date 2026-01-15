@@ -99,6 +99,42 @@ function renderElders(list){
   });
 }
 
+function normalizeInterview(i) {
+  // Convertir fecha a formato YYYY-MM-DD
+  let fecha = i.fecha;
+  if(fecha instanceof Date) {
+    fecha = fecha.toISOString().split('T')[0];
+  } else if(typeof fecha === 'string' && fecha.includes(',')) {
+    // Parsear si viene como texto de fecha
+    try {
+      const d = new Date(fecha);
+      if(!isNaN(d.getTime())) fecha = d.toISOString().split('T')[0];
+    } catch(e) {}
+  }
+  
+  // Convertir hora a formato HH:MM
+  let hora = i.hora;
+  if(hora instanceof Date) {
+    hora = String(hora.getHours()).padStart(2,'0') + ':' + String(hora.getMinutes()).padStart(2,'0');
+  } else if(typeof hora === 'string' && hora.includes(',')) {
+    // Parsear si viene como texto de fecha/hora
+    try {
+      const d = new Date(hora);
+      if(!isNaN(d.getTime())) hora = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    } catch(e) {}
+  }
+  
+  return {
+    id: i.id || Date.now(),
+    nombre: i.nombre || '',
+    fecha: fecha || '',
+    hora: hora || '',
+    lugar: i.lugar || '',
+    notas: i.notas || '',
+    estado: i.estado || 'Pendiente'
+  };
+}
+
 function renderInterviews(list){
   if(!$listView) return;
   $listView.innerHTML = '';
@@ -383,8 +419,11 @@ async function loadDataFromBackend(){
         console.log('Entrevistas recibidas (Hoja 2):', data);
         if(Array.isArray(data)){
           interviews.length = 0;
-          data.forEach(i => interviews.push(i));
-          console.log('Entrevistas cargadas:', interviews.length);
+          data.forEach(i => {
+            const normalized = normalizeInterview(i);
+            interviews.push(normalized);
+          });
+          console.log('Entrevistas cargadas:', interviews.length, interviews);
         }
       }
     }catch(err){ 
@@ -688,15 +727,8 @@ if(interviewForm){
       if(Array.isArray(idata) && idata.length){
         interviews.length = 0;
         idata.forEach(row => {
-          interviews.push({
-            id: row.id || (interviews.length+1),
-            nombre: row.nombre || '',
-            fecha: row.fecha || '',
-            hora: row.hora || '',
-            lugar: row.lugar || '',
-            notas: row.notas || '',
-            estado: row.estado || 'Pendiente'
-          });
+          const normalized = normalizeInterview(row);
+          interviews.push(normalized);
         });
         renderInterviews(interviews);
       }

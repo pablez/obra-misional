@@ -40,6 +40,11 @@
   to = "/.netlify/functions/clear"
   status = 200
 
+[[redirects]]
+  from = "/sheet/delete"
+  to = "/.netlify/functions/delete"
+  status = 200
+
 # SPA fallback - todas las rutas no encontradas van al index.html
 [[redirects]]
   from = "/*"

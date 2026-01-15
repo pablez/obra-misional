@@ -44,6 +44,45 @@ function formatDate(d){
   try{ return new Date(d).toLocaleDateString(); }catch(e){return d}
 }
 
+// Función para sumar 1 día a una fecha YYYY-MM-DD considerando los días del mes
+function addOneDayToDate(dateStr) {
+  if(!dateStr || !dateStr.includes('-')) return dateStr;
+  
+  try {
+    const parts = dateStr.split('-');
+    let year = parseInt(parts[0]);
+    let month = parseInt(parts[1]);
+    let day = parseInt(parts[2]);
+    
+    // Días por mes
+    const daysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    
+    // Ajustar por año bisiesto
+    if(month === 2 && ((year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0))) {
+      daysInMonth[1] = 29;
+    }
+    
+    // Sumar 1 día
+    day++;
+    
+    // Si el día excede el máximo del mes
+    if(day > daysInMonth[month - 1]) {
+      day = 1;
+      month++;
+      
+      // Si el mes excede 12
+      if(month > 12) {
+        month = 1;
+        year++;
+      }
+    }
+    
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  } catch(e) {
+    return dateStr;
+  }
+}
+
 function render(list){
   if(!$reports) return;
   $reports.innerHTML = '';
@@ -116,13 +155,36 @@ function normalizeInterview(i) {
     } catch(e) {}
   }
   
-  if(fecha instanceof Date) {
-    fecha = fecha.toISOString().split('T')[0];
-  } else if(typeof fecha === 'string' && !fecha.includes('-')) {
-    // Parsear si viene en otro formato
+  // Si es string en formato DD/M/YYYY o D/M/YYYY (lo que devuelve Google Sheets)
+  if(typeof fecha === 'string' && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(fecha)) {
     try {
-      const d = new Date(fecha);
-      if(!isNaN(d.getTime())) fecha = d.toISOString().split('T')[0];
+      const parts = fecha.split('/');
+      const day = String(parts[0]).padStart(2, '0');
+      const month = String(parts[1]).padStart(2, '0');
+      const year = parts[2];
+      fecha = `${year}-${month}-${day}`;
+    } catch(e) {
+      console.warn('Error parseando fecha:', fecha);
+    }
+  }
+  
+  // Si ya está en formato YYYY-MM-DD, dejarlo como está
+  if(typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+    // Ya está bien formateado, no hacer nada
+  }
+  // Para Date objects, usar zona horaria local
+  else if(fecha instanceof Date) {
+    fecha = fecha.getFullYear() + '-' + 
+            String(fecha.getMonth() + 1).padStart(2, '0') + '-' + 
+            String(fecha.getDate()).padStart(2, '0');
+  } else if(typeof fecha === 'string' && !fecha.includes('-')) {
+    // Parsear si viene en otro formato - EVITAR new Date() para no tener problemas de zona horaria
+    try {
+      // Intentar parsear como YYYY, MM, DD separados
+      const matches = fecha.match(/(\d{4})[\/-]?(\d{2})[\/-]?(\d{2})/);
+      if(matches) {
+        fecha = `${matches[1]}-${matches[2]}-${matches[3]}`;
+      }
     } catch(e) {}
   }
   
@@ -141,13 +203,23 @@ function normalizeInterview(i) {
     } catch(e) {}
   }
   
+  // Si es string en formato HH:MM o H:MM (lo que devuelve Google Sheets en algunas versiones)
+  if(typeof hora === 'string' && /^\d{1,2}:\d{2}$/.test(hora)) {
+    // Ya está en el formato correcto o casi
+    const parts = hora.split(':');
+    hora = `${String(parts[0]).padStart(2, '0')}:${String(parts[1]).padStart(2, '0')}`;
+  }
+  
   if(hora instanceof Date) {
     hora = String(hora.getHours()).padStart(2,'0') + ':' + String(hora.getMinutes()).padStart(2,'0');
   } else if(typeof hora === 'string' && !hora.includes(':')) {
     // Si es número o formato sin :
     try {
-      const d = new Date(hora);
-      if(!isNaN(d.getTime())) hora = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+      // Evitar new Date() por problema de zona horaria
+      const matches = hora.match(/(\d{1,2})[\.:_-]?(\d{2})/);
+      if(matches) {
+        hora = `${String(matches[1]).padStart(2, '0')}:${String(matches[2]).padStart(2, '0')}`;
+      }
     } catch(e) {}
   }
   
@@ -162,18 +234,32 @@ function normalizeInterview(i) {
   };
 }
 
-function renderInterviews(list){
+function renderInterviews(list, dateFilter = null){
   if(!$listView) return;
   $listView.innerHTML = '';
-  if(!list.length){ $listView.innerHTML = '<p>No hay entrevistas programadas.</p>'; return }
-  list.forEach(i => {
+  
+  // Filtrar por fecha si se especifica
+  let filtered = list;
+  if(dateFilter) {
+    filtered = list.filter(i => i.fecha === dateFilter);
+  }
+  
+  if(!filtered.length){ 
+    const msg = dateFilter ? 'No hay entrevistas para este día.' : 'No hay entrevistas programadas.';
+    $listView.innerHTML = '<p>' + msg + '</p>'; 
+    return;
+  }
+  
+  filtered.forEach(i => {
     const card = document.createElement('article');
     card.className = `interview-card ${(i.estado || '').toLowerCase()}`;
     const statusClass = (i.estado || 'pendiente').toLowerCase();
+    // Sumar +1 día para mostrar (ajuste de zona horaria)
+    const displayDate = addOneDayToDate(i.fecha);
     card.innerHTML = `
       <h4>${escapeHtml(i.nombre || 'Sin nombre')}</h4>
       <div class="interview-meta">
-        <span>📅 ${formatDate(i.fecha)}</span>
+        <span>📅 ${formatDate(displayDate)}</span>
         <span>🕐 ${escapeHtml(i.hora || '')}</span>
         <span>📍 ${escapeHtml(i.lugar || 'Por definir')}</span>
       </div>
@@ -181,10 +267,19 @@ function renderInterviews(list){
       <span class="interview-status ${statusClass}">${escapeHtml(i.estado || 'Pendiente')}</span>
       <div class="interview-actions">
         <button class="btn btn-ghost btn-edit-interview" data-id="${i.id}" title="Editar">✏️</button>
+        <button class="btn btn-ghost btn-delete-interview" data-id="${i.id}" title="Eliminar">🗑️</button>
       </div>
     `;
     $listView.appendChild(card);
   });
+}
+
+// Obtener fecha de hoy en formato YYYY-MM-DD
+function getTodayDateStr() {
+  const today = new Date();
+  return today.getFullYear() + '-' + 
+         String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+         String(today.getDate()).padStart(2, '0');
 }
 
 // Renderizar calendario
@@ -277,8 +372,8 @@ function createDayElement(dayNum, isOtherMonth, isToday = false, year = currentY
     });
   }
   
-  // Click para ver detalles
-  if(dayInterviews.length > 0 && !isOtherMonth) {
+  // Click para ver detalles o crear entrevista
+  if(!isOtherMonth) {
     dayEl.style.cursor = 'pointer';
     dayEl.addEventListener('click', () => {
       showDayInterviews(dateStr, dayInterviews);
@@ -298,7 +393,9 @@ function showDayInterviews(date, dayInterviews) {
   const content = document.createElement('div');
   content.style.cssText = 'background:var(--card);padding:24px;border-radius:12px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);';
   
-  const dateObj = new Date(date + 'T12:00:00');
+  // Sumar +1 día para mostrar (ajuste de zona horaria)
+  const displayDate = addOneDayToDate(date);
+  const dateObj = new Date(displayDate + 'T12:00:00');
   const dateStr = dateObj.toLocaleDateString('es-ES', {day:'numeric',month:'long',year:'numeric'});
   
   let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><h3 style="margin:0;color:var(--accent-dark);">📅 ' + dateStr + '</h3><button class="close-modal" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);">✕</button></div>';
@@ -318,7 +415,11 @@ function showDayInterviews(date, dayInterviews) {
     } else {
       html += '<div style="color:#10b981;font-weight:500;">✓ Disponible</div>';
     }
-    html += '</div><button class="btn-edit-time" data-hour="' + hour + '" data-interview-id="' + (isOccupied ? interview.id : '') + '" style="padding:6px 12px;font-size:0.75rem;background:' + btnBg + ';color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">' + (isOccupied ? '✏️ ' : '➕ ') + btnText + '</button></div>';
+    html += '</div><div style="display:flex;gap:6px;"><button class="btn-edit-time" data-hour="' + hour + '" data-interview-id="' + (isOccupied ? interview.id : '') + '" style="padding:6px 12px;font-size:0.75rem;background:' + btnBg + ';color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">' + (isOccupied ? '✏️ ' : '➕ ') + btnText + '</button>';
+    if(isOccupied) {
+      html += '<button class="btn-delete-time" data-interview-id="' + interview.id + '" style="padding:6px 12px;font-size:0.75rem;background:#ef4444;color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">🗑️ Eliminar</button>';
+    }
+    html += '</div></div>';
   });
   
   html += '<div style="margin-top:20px;padding-top:12px;border-top:1px solid rgba(11,96,209,0.1);"><button class="btn btn-primary" id="closeModalBtn" style="width:100%;">Cerrar</button></div>';
@@ -362,6 +463,55 @@ function showDayInterviews(date, dayInterviews) {
       }
     });
   });
+
+  content.querySelectorAll('.btn-delete-time').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const interviewId = btn.dataset.interviewId;
+      const interview = interviews.find(i => String(i.id) === String(interviewId));
+      if(interview && confirm(`¿Eliminar la entrevista de ${interview.nombre}?`)) {
+        modal.remove();
+        await deleteInterview(interviewId);
+      }
+    });
+  });
+}
+
+async function deleteInterview(interviewId) {
+  const interview = interviews.find(i => String(i.id) === String(interviewId));
+  if(!interview) return;
+  
+  const rowIndex = interviews.indexOf(interview) + 2;
+  
+  try {
+    console.log('Intentando eliminar entrevista, fila:', rowIndex);
+    const res = await fetch('/sheet/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sheetName: 'Hoja 2',
+        rowIndex: rowIndex
+      })
+    });
+    
+    if(res.ok) {
+      console.log('Entrevista eliminada del Excel');
+      interviews.splice(interviews.indexOf(interview), 1);
+      renderInterviews(interviews, getTodayDateStr());
+      renderCalendar(currentYear, currentMonth);
+      return;
+    } else {
+      const error = await res.text();
+      console.error('Error al eliminar:', res.status, error);
+    }
+  } catch(err) {
+    console.error('Error eliminando entrevista:', err);
+  }
+  
+  // Fallback local
+  interviews.splice(interviews.indexOf(interview), 1);
+  renderInterviews(interviews, getTodayDateStr());
+  renderCalendar(currentYear, currentMonth);
+  console.log('Entrevista eliminada localmente (offline mode)');
 }
 
 // Navegación del calendario
@@ -407,7 +557,7 @@ function initCalendarNavigation() {
         $listView.classList.remove('hidden');
         document.getElementById('viewIcon').textContent = '📅';
         document.getElementById('viewText').textContent = 'Vista Calendario';
-        renderInterviews(interviews);
+        renderInterviews(interviews, getTodayDateStr());
       }
     });
   }
@@ -464,7 +614,7 @@ async function loadDataFromBackend(){
   
   render(reports);
   renderCalendar(currentYear, currentMonth);
-  renderInterviews(interviews);
+  renderInterviews(interviews, getTodayDateStr());
   renderElders(elders);
   initCalendarNavigation();
 }
@@ -572,6 +722,16 @@ document.addEventListener('click', e => {
       toggleInterviewForm(true);
     }
   }
+
+  // Delete interview
+  if(e.target.closest('.btn-delete-interview')){
+    const btn = e.target.closest('.btn-delete-interview');
+    const id = btn.dataset.id;
+    const interview = interviews.find(i => String(i.id) === String(id));
+    if(interview && confirm(`¿Eliminar la entrevista de ${interview.nombre}?`)){
+      deleteInterview(id);
+    }
+  }
 });
 
 if(reportForm){
@@ -666,7 +826,7 @@ if(interviewForm){
           console.error('Error actualizando entrevista:', err); 
         }
         Object.assign(interview, payload);
-        renderInterviews(interviews);
+        renderInterviews(interviews, getTodayDateStr());
         renderCalendar(currentYear, currentMonth);
       }
       toggleInterviewForm(false);
@@ -700,7 +860,7 @@ if(interviewForm){
       }
       // Fallback local
       interviews.push(newInterview);
-      renderInterviews(interviews);
+      renderInterviews(interviews, getTodayDateStr());
       renderCalendar(currentYear, currentMonth);
       toggleInterviewForm(false);
       console.log('Entrevista guardada localmente (offline mode)');
@@ -776,7 +936,7 @@ if(interviewForm){
           const normalized = normalizeInterview(row);
           interviews.push(normalized);
         });
-        renderInterviews(interviews);
+        renderInterviews(interviews, getTodayDateStr());
       }
     }catch(err){
       console.warn('Error cargando Sheets:', err);

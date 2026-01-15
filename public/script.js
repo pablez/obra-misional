@@ -102,10 +102,24 @@ function renderElders(list){
 function normalizeInterview(i) {
   // Convertir fecha a formato YYYY-MM-DD
   let fecha = i.fecha;
+  
+  // Si es string con formato "Date(...)" extraer los valores
+  if(typeof fecha === 'string' && fecha.includes('Date(')) {
+    try {
+      const matches = fecha.match(/Date\((\d+),(\d+),(\d+)/);
+      if(matches) {
+        const year = parseInt(matches[1]);
+        const month = parseInt(matches[2]) + 1; // JavaScript months are 0-indexed
+        const day = parseInt(matches[3]);
+        fecha = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      }
+    } catch(e) {}
+  }
+  
   if(fecha instanceof Date) {
     fecha = fecha.toISOString().split('T')[0];
-  } else if(typeof fecha === 'string' && fecha.includes(',')) {
-    // Parsear si viene como texto de fecha
+  } else if(typeof fecha === 'string' && !fecha.includes('-')) {
+    // Parsear si viene en otro formato
     try {
       const d = new Date(fecha);
       if(!isNaN(d.getTime())) fecha = d.toISOString().split('T')[0];
@@ -114,10 +128,23 @@ function normalizeInterview(i) {
   
   // Convertir hora a formato HH:MM
   let hora = i.hora;
+  
+  // Si es string con formato "Date(...)" extraer la hora
+  if(typeof hora === 'string' && hora.includes('Date(')) {
+    try {
+      const matches = hora.match(/Date\(\d+,\d+,\d+,(\d+),(\d+),(\d+)/);
+      if(matches) {
+        const h = parseInt(matches[1]);
+        const m = parseInt(matches[2]);
+        hora = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      }
+    } catch(e) {}
+  }
+  
   if(hora instanceof Date) {
     hora = String(hora.getHours()).padStart(2,'0') + ':' + String(hora.getMinutes()).padStart(2,'0');
-  } else if(typeof hora === 'string' && hora.includes(',')) {
-    // Parsear si viene como texto de fecha/hora
+  } else if(typeof hora === 'string' && !hora.includes(':')) {
+    // Si es número o formato sin :
     try {
       const d = new Date(hora);
       if(!isNaN(d.getTime())) hora = String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
@@ -262,8 +289,8 @@ function createDayElement(dayNum, isOtherMonth, isToday = false, year = currentY
 }
 
 function showDayInterviews(date, dayInterviews) {
-  const hours = ['18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00'];
-  const hourLabels = ['6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM', '9:30 PM', '10:00 PM', '10:30 PM', '11:00 PM'];
+  const hours = ['15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30', '22:00', '22:30', '23:00'];
+  const hourLabels = ['3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM', '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM', '8:00 PM', '8:30 PM', '9:00 PM', '9:30 PM', '10:00 PM', '10:30 PM', '11:00 PM'];
   
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;';
@@ -275,7 +302,7 @@ function showDayInterviews(date, dayInterviews) {
   const dateStr = dateObj.toLocaleDateString('es-ES', {day:'numeric',month:'long',year:'numeric'});
   
   let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;"><h3 style="margin:0;color:var(--accent-dark);">📅 ' + dateStr + '</h3><button class="close-modal" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:var(--muted);">✕</button></div>';
-  html += '<div style="font-weight:600;color:var(--accent-dark);margin-bottom:12px;font-size:1.1rem;">⏰ Horarios (6:00 PM - 11:00 PM):</div>';
+  html += '<div style="font-weight:600;color:var(--accent-dark);margin-bottom:12px;font-size:1.1rem;">⏰ Horarios (3:00 PM - 11:00 PM):</div>';
   
   hours.forEach((hour, idx) => {
     const interview = dayInterviews.find(i => i.hora === hour);

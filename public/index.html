@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Reportes — La Chimba</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf@0.10.1/dist/html2pdf.bundle.min.js"></script>
 </head>
 <body>
   <header class="site-header" role="banner">
@@ -15,9 +18,20 @@
         <p class="subtitle">Seguimiento de reportes — enlaces a documentos en Google Drive</p>
       </div>
     </div>
+    <div class="header-actions">
+      <button id="notificationBell" class="notification-bell" title="Ver recordatorios">
+        <span class="bell-icon">🔔</span>
+        <span id="notificationCounter" class="notification-counter">0</span>
+      </button>
+    </div>
   </header>
 
   <main class="container">
+    <section class="search-global-section">
+      <input id="globalSearch" type="search" placeholder="🔍 Buscar en todo: entrevistas, notas, reportes..." class="global-search-input" aria-label="Búsqueda global">
+      <div id="globalSearchResults" class="global-search-results hidden"></div>
+    </section>
+    
     <section class="controls">
       <div class="controls-row">
         <input id="search" type="search" placeholder="Buscar reportes por título..." aria-label="Buscar reportes">
@@ -44,6 +58,53 @@
 
     <section id="reports" class="reports-grid" aria-live="polite"></section>
     
+    <!-- Dashboard de Estadísticas -->
+    <section class="dashboard-section">
+      <h2>📊 Dashboard de Estadísticas</h2>
+      
+      <!-- KPIs -->
+      <div class="kpis-grid">
+        <div class="kpi-card">
+          <div class="kpi-value" id="kpiTotalEntrevistas">0</div>
+          <div class="kpi-label">Total Entrevistas</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" id="kpiCompletadas">0</div>
+          <div class="kpi-label">Completadas</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" id="kpiPendientes">0</div>
+          <div class="kpi-label">Pendientes</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" id="kpiPorcentaje">0%</div>
+          <div class="kpi-label">Tasa Completación</div>
+        </div>
+      </div>
+      
+      <!-- Gráficos -->
+      <div class="charts-grid">
+        <div class="chart-container">
+          <h4>Estado de Entrevistas</h4>
+          <canvas id="chartEstado"></canvas>
+        </div>
+        <div class="chart-container">
+          <h4>Top 5 Entrevistadores</h4>
+          <canvas id="chartEntrevistadores"></canvas>
+        </div>
+        <div class="chart-container" style="grid-column: 1 / -1;">
+          <h4>Entrevistas por Mes</h4>
+          <canvas id="chartMeses"></canvas>
+        </div>
+      </div>
+      
+      <!-- Top Entrevistadores -->
+      <div class="top-interviewers">
+        <h4>Estadísticas por Entrevistador</h4>
+        <div id="topInterviewersList" class="interviewer-list"></div>
+      </div>
+    </section>
+    
     <section class="interviews-section">
       <h2>📅 Agenda de Entrevistas 2026</h2>
       <div class="controls-row">
@@ -51,10 +112,65 @@
           <span class="btn-icon">➕</span>
           <span>Agregar entrevista</span>
         </button>
+        <button id="newNotesBtn" class="btn btn-primary btn-new">
+          <span class="btn-icon">📝</span>
+          <span>Agregar recordatorio</span>
+        </button>
         <button id="toggleViewBtn" class="btn btn-ghost">
           <span id="viewIcon">📅</span>
           <span id="viewText">Vista Calendario</span>
         </button>
+        <button id="toggleFiltersBtn" class="btn btn-ghost">
+          <span>🔍 Filtros</span>
+        </button>
+        <button id="exportInterviewsBtn" class="btn btn-ghost" title="Exportar entrevistas a Excel">
+          <span>📊 Excel</span>
+        </button>
+        <button id="exportNotesBtn" class="btn btn-ghost" title="Exportar recordatorios a PDF">
+          <span>📄 PDF</span>
+        </button>
+        <button id="auditHistoryBtn" class="btn btn-ghost" title="Ver historial de cambios">
+          <span>📋 Historial</span>
+        </button>
+      </div>
+      
+      <!-- Panel de Filtros -->
+      <div id="filtersPanel" class="filters-panel hidden" aria-hidden="true">
+        <h4>Filtros de Entrevistas</h4>
+        <div class="filters-grid">
+          <div class="filter-group">
+            <label>Por Estado</label>
+            <div class="checkbox-group">
+              <label><input type="checkbox" class="filter-state" value="Pendiente" checked> Pendiente</label>
+              <label><input type="checkbox" class="filter-state" value="Completada" checked> Completada</label>
+              <label><input type="checkbox" class="filter-state" value="Cancelada" checked> Cancelada</label>
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Entrevistador</label>
+            <input type="text" id="filterEntrevistador" placeholder="Buscar entrevistador..." class="filter-input">
+          </div>
+          <div class="filter-group">
+            <label>Rango de Fechas</label>
+            <div style="display:flex;gap:8px;">
+              <input type="date" id="filterFechaDesde" placeholder="Desde" class="filter-input">
+              <input type="date" id="filterFechaHasta" placeholder="Hasta" class="filter-input">
+            </div>
+          </div>
+          <div class="filter-group">
+            <label>Prioridad de Recordatorios</label>
+            <div class="checkbox-group">
+              <label><input type="checkbox" class="filter-priority" value="URGENTE" checked> URGENTE</label>
+              <label><input type="checkbox" class="filter-priority" value="Alta" checked> Alta</label>
+              <label><input type="checkbox" class="filter-priority" value="Media" checked> Media</label>
+              <label><input type="checkbox" class="filter-priority" value="Baja" checked> Baja</label>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+          <button id="applyFiltersBtn" class="btn btn-primary">Aplicar Filtros</button>
+          <button id="clearFiltersBtn" class="btn btn-ghost">Limpiar</button>
+        </div>
       </div>
       <div id="interviewFormPanel" class="form-panel hidden" aria-hidden="true">
         <h3 id="interviewFormTitle">Agregar entrevista</h3>
@@ -62,7 +178,7 @@
           <div class="form-row"><label>Nombre</label><input name="nombre" required></div>
           <div class="form-row"><label>Fecha</label><input name="fecha" type="date" required></div>
           <div class="form-row"><label>Hora</label><input name="hora" type="time" required></div>
-          <div class="form-row"><label>Lugar</label><input name="lugar"></div>
+          <div class="form-row"><label>Entrevistador</label><input name="entrevistador" placeholder="Nombre de quien entrevista"></div>
           <div class="form-row"><label>Motivo/Notas</label><textarea name="notas"></textarea></div>
           <div class="form-row">
             <label>Estado</label>
@@ -75,6 +191,45 @@
           <div class="form-actions">
             <button type="submit" class="btn btn-primary">Guardar</button>
             <button type="button" id="cancelInterviewForm" class="btn btn-ghost">Cancelar</button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Formulario de Notas -->
+      <div id="notesFormPanel" class="form-panel hidden" aria-hidden="true">
+        <h3 id="notesFormTitle">Agregar Recordatorio</h3>
+        <form id="notesForm">
+          <div class="form-row"><label>Fecha</label><input name="fecha" type="date" required></div>
+          <div class="form-row">
+            <label>Tipo</label>
+            <select name="tipo" required>
+              <option value="">Seleccionar tipo...</option>
+              <option value="Tareas">Tareas pendientes</option>
+              <option value="Seguimiento">Seguimiento de entrevistas</option>
+              <option value="Documentos">Documentos por preparar</option>
+              <option value="Llamadas">Llamadas por hacer</option>
+              <option value="Compromisos">Compromisos pendientes</option>
+              <option value="Información">Información importante</option>
+              <option value="Avisos">Avisos/Notificaciones</option>
+              <option value="Referencias">Referencias/Recomendaciones</option>
+              <option value="Cambios">Cambios o cancelaciones</option>
+              <option value="Prioridades">Prioridades</option>
+            </select>
+          </div>
+          <div class="form-row"><label>Nota/Recordatorio</label><textarea name="nota" required></textarea></div>
+          <div class="form-row"><label>Relacionado a (persona o referencia)</label><input name="relacionadoA" placeholder="Nombre o referencia"></div>
+          <div class="form-row">
+            <label>Prioridad</label>
+            <select name="prioridad" required>
+              <option value="Baja">Baja</option>
+              <option value="Media">Media</option>
+              <option value="Alta">Alta</option>
+              <option value="URGENTE">URGENTE</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <button type="button" id="cancelNotesForm" class="btn btn-ghost">Cancelar</button>
           </div>
         </form>
       </div>
@@ -102,6 +257,16 @@
       <div id="listView" class="interviews-grid hidden" aria-live="polite"></div>
     </section>
     
+    <!-- Sección de Notas/Recordatorios -->
+    <section class="notes-section">
+      <h2>📝 Recordatorios</h2>
+      <div id="notesList" class="notes-grid" aria-live="polite"></div>
+    </section>
+
+    <!-- Plantillas de Notas eliminadas -->
+
+    <!-- Gestión de misioneros eliminada -->
+    
     <section id="elders" class="elders-section">
       <h2>Misioneros</h2>
       <p class="subtitle small">Conoce a los elderes de la zona</p>
@@ -114,5 +279,13 @@
   </footer>
 
   <script src="script.js"></script>
+  <script src="debug.js"></script>
+  <script src="components/loader.js"></script>
+  <script src="components/dashboard.js"></script>
+  <script src="components/audit.js"></script>
+  <script src="components/alerts.js"></script>
+  <!-- templates.js eliminado -->
+  <!-- Missionaries component removed -->
+  <script src="components/core.js"></script>
 </body>
 </html>

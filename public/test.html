@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test - Verificar Carga</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .test-group {
+      margin-bottom: 20px;
+    }
+    .test-group h2 {
+      font-size: 14px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 8px;
+    }
+    .test-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 6px;
+      background: #f9f9f9;
+      border-left: 3px solid #ddd;
+    }
+    .test-item.pass {
+      background: #dcfce7;
+      border-left-color: #16a34a;
+    }
+    .test-item.fail {
+      background: #fee2e2;
+      border-left-color: #dc2626;
+    }
+    .test-item.pending {
+      background: #fef3c7;
+      border-left-color: #fbbf24;
+    }
+    .icon {
+      margin-right: 12px;
+      font-size: 18px;
+      min-width: 24px;
+    }
+    .label {
+      flex: 1;
+      font-size: 14px;
+    }
+    .status {
+      font-size: 12px;
+      color: #666;
+      font-weight: 600;
+    }
+    .log-box {
+      background: #1e1e1e;
+      color: #00ff00;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 20px;
+      line-height: 1.5;
+    }
+    button {
+      background: #0b60d1;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-top: 20px;
+      width: 100%;
+    }
+    button:hover {
+      background: #0a4fb5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Verificador de Carga</h1>
+    
+    <div class="test-group">
+      <h2>📝 Scripts Cargados</h2>
+      <div id="scriptsTest"></div>
+    </div>
+
+    <div class="test-group">
+      <h2>📦 Variables Globales</h2>
+      <div id="variablesTest"></div>
+    </div>
+
+    <div class="test-group">
+      <h2>🔧 Componentes</h2>
+      <div id="componentsTest"></div>
+    </div>
+
+    <div class="test-group">
+      <h2>🌐 Endpoints</h2>
+      <div id="endpointsTest"></div>
+    </div>
+
+    <div class="log-box" id="console"></div>
+
+    <button onclick="location.href='index.html'">Ir a Aplicación Principal</button>
+  </div>
+
+  <script>
+    const logs = [];
+    
+    function log(msg) {
+      logs.push(msg);
+      console.log(msg);
+      updateConsole();
+    }
+
+    function updateConsole() {
+      const consoleDiv = document.getElementById('console');
+      consoleDiv.innerHTML = logs.map(l => l.replace(/</g, '&lt;').replace(/>/g, '&gt;')).join('\n');
+      consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    }
+
+    function createTestItem(label, passed, detail = '') {
+      const div = document.createElement('div');
+      div.className = `test-item ${passed ? 'pass' : 'fail'}`;
+      div.innerHTML = `
+        <span class="icon">${passed ? '✅' : '❌'}</span>
+        <span class="label">${label}</span>
+        <span class="status">${detail}</span>
+      `;
+      return div;
+    }
+
+    // Test Scripts
+    log('🔍 Iniciando verificación...\n');
+
+    setTimeout(() => {
+      const scriptsContainer = document.getElementById('scriptsTest');
+      
+      const tests = [
+        { name: 'script.js', test: typeof loadDataFromBackend !== 'undefined' },
+        { name: 'loader.js', test: typeof LoaderComponent !== 'undefined' },
+        { name: 'dashboard.js', test: typeof DashboardComponent !== 'undefined' },
+        { name: 'audit.js', test: typeof AuditComponent !== 'undefined' },
+        { name: 'alerts.js', test: typeof AlertsComponent !== 'undefined' },
+        { name: 'templates.js', test: typeof TemplatesComponent !== 'undefined' },
+        { name: 'missionaries.js', test: typeof MissionariesComponent !== 'undefined' },
+        { name: 'core.js', test: typeof AppCore !== 'undefined' }
+      ];
+
+      tests.forEach(t => {
+        scriptsContainer.appendChild(createTestItem(t.name, t.test));
+        log(`${t.test ? '✓' : '✗'} ${t.name}`);
+      });
+
+      // Test Variables
+      log('\n📦 Variables globales:');
+      const variablesContainer = document.getElementById('variablesTest');
+      const vars = [
+        { name: 'reports', value: typeof reports },
+        { name: 'interviews', value: typeof interviews },
+        { name: 'notes', value: typeof notes },
+        { name: 'templates', value: typeof templates },
+        { name: 'missionaries', value: typeof missionaries },
+        { name: 'auditLog', value: typeof auditLog }
+      ];
+
+      vars.forEach(v => {
+        const exists = v.value === 'object';
+        variablesContainer.appendChild(createTestItem(v.name, exists, v.value));
+        log(`${exists ? '✓' : '✗'} ${v.name}: ${v.value}`);
+      });
+
+      // Test Endpoints
+      log('\n🌐 Verificando endpoints:');
+      const endpointsContainer = document.getElementById('endpointsTest');
+
+      const endpoints = [
+        '/sheet?name=Hoja 1',
+        '/notes',
+        '/audit',
+        '/templates',
+        '/missionaries'
+      ];
+
+      Promise.all(endpoints.map(ep =>
+        fetch(ep)
+          .then(r => ({ endpoint: ep, ok: true, status: r.status }))
+          .catch(e => ({ endpoint: ep, ok: false, error: e.message }))
+      )).then(results => {
+        results.forEach(r => {
+          endpointsContainer.appendChild(
+            createTestItem(r.endpoint, r.ok, r.ok ? `Status ${r.status}` : r.error)
+          );
+          log(`${r.ok ? '✓' : '✗'} ${r.endpoint}: ${r.ok ? 'OK' : r.error}`);
+        });
+        log('\n✅ Verificación completada');
+      });
+
+    }, 500);
+  </script>
+</body>
+</html>

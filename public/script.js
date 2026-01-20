@@ -116,6 +116,11 @@ let activeFilters = {
 const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
                     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
+// Google Sheets Configuration
+const SHEET_ID = '1LQL5cnyEynGWxrO-K4BtRjHonGUPjyam19wCziYqqzs';
+const REPORTS_SHEET = 'Hoja 1';
+const INTERVIEWS_SHEET = 'Hoja 2';
+
 function formatDate(d){
   try{ return new Date(d).toLocaleDateString(); }catch(e){return d}
 }
@@ -2543,10 +2548,6 @@ if(interviewForm){
   // 2) En cada pestaña la primera fila debe ser cabeceras
   // 3) Haz la hoja visible: Compartir -> Cualquiera con el enlace -> Ver
   // 4) Copia el ID de la hoja (parte entre /d/ y /edit) y ponlo en SHEET_ID abajo.
-
-  const SHEET_ID = '1LQL5cnyEynGWxrO-K4BtRjHonGUPjyam19wCziYqqzs';
-  const REPORTS_SHEET = 'Hoja 1';
-  const INTERVIEWS_SHEET = 'Hoja 2';
 
   function parseGvizText(text){
     const start = text.indexOf('(');

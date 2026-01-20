@@ -45,10 +45,7 @@
   to = "/.netlify/functions/delete"
   status = 200
 
-[[redirects]]
-  from = "/notes"
-  to = "/.netlify/functions/notes"
-  status = 200
+# Redirect /notes eliminado - funcionalidad de recordatorios deshabilitada
 
 [[redirects]]
   from = "/audit"

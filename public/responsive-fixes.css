@@ -1,0 +1,61 @@
+/* Correcciones responsivas para iconos y textos de botones y filtros */
+/* Asegura que los botones muestren icono + texto y que los filtros rápidos no oculten su label */
+.btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  padding: 0.5rem 0.9rem !important;
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+  min-height: 44px !important;
+  border-radius: 12px !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+}
+
+/* Iconos dentro de botones */
+.btn .btn-icon,
+.btn-icon {
+  font-size: 1.25rem !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Texto dentro de botones */
+.btn span { display: inline-block !important; }
+.btn .btn-text { display: inline-block !important; font-size:0.95rem !important; }
+
+/* Evitar que reglas existentes oculten el texto de filtros rápidos o botones importantes */
+.controls-row .btn span:not(.btn-icon):not(#viewIcon):not(#weekViewIcon){ display: inline-block !important; }
+
+/* Quick filters row: responsive grid/flex y botones legibles */
+.quick-filters-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.btn-quick-filter{ min-width:120px; padding:10px 12px; font-weight:700; border-radius:10px; }
+
+@media (max-width:768px){
+  .quick-filters-row{ grid-template-columns:repeat(2,1fr); }
+  .btn-quick-filter{ font-size:0.95rem; }
+}
+@media (max-width:640px){
+  .quick-filters-row{ grid-template-columns:repeat(2,1fr); }
+  .btn-quick-filter{ flex:1 1 calc(50% - 6px); min-width:0; }
+  /* Mantener texto visible en móviles: no ocultar spans */
+  .controls-row .btn span { display:inline-block !important; }
+}
+@media (max-width:420px){
+  .quick-filters-row{ grid-template-columns:1fr; }
+  .btn-quick-filter{ width:100%; padding:10px 12px; font-size:0.95rem; }
+  .controls-row .btn{ padding:8px 10px !important; font-size:0.85rem !important; }
+  .btn .btn-icon, .btn-icon{ font-size:1.2rem !important; }
+}
+
+/* Mejora navegación calendario */
+.calendar-nav{ min-width:44px !important; min-height:44px !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; font-size:1.15rem !important; }
+
+/* Forzar visibilidad de elementos dentro de botones (por si hay reglas con text-indent o font-size:0) */
+.btn *{ text-indent:0 !important; font-size:inherit !important; visibility:visible !important; }
+
+/* Evitar que overflow esconda iconos en botones con border-radius grande */
+.btn, .btn *{ overflow:visible !important; }

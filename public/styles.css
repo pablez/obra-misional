@@ -8,6 +8,16 @@
   --accent-gradient: linear-gradient(90deg,var(--accent),var(--accent-2));
 }
 *{box-sizing:border-box}
+:root{
+  --bg:#f8fbff;
+  --card:#ffffff;
+  --accent:#0b60d1; /* azul principal */
+  --accent-2:#60a5fa; /* azul claro */
+  --accent-dark:#083f9a;
+  --muted:#475569;
+  --accent-gradient: linear-gradient(90deg,var(--accent),var(--accent-2));
+}
+*{box-sizing:border-box}
 body{margin:0;font-family:Segoe UI, Roboto, Arial, sans-serif;background:var(--bg);color:#111}
 .site-header{padding:20px 16px;background:var(--accent);color:#fff;border-bottom:1px solid rgba(0,0,0,0.06);display:flex;justify-content:space-between;align-items:center}
 .site-header .brand{max-width:980px;margin:0 auto;display:flex;align-items:center;gap:14px;flex:1}
@@ -68,6 +78,21 @@ body{margin:0;font-family:Segoe UI, Roboto, Arial, sans-serif;background:var(--b
 .btn-ghost:hover{background:rgba(14,165,146,0.06)}
 .site-footer{padding:18px 16px;text-align:center;color:var(--muted);font-size:0.9rem}
 
+/* styles.css reorganizado: variables + imports to component files */
+/* Keep this file minimal; components are in styles/components/ */
+
+@import url('styles/components/variables.css');
+@import url('styles/components/layout.css');
+@import url('styles/components/buttons.css');
+@import url('styles/components/cards.css');
+@import url('styles/components/forms.css');
+@import url('styles/components/interviews.css');
+@import url('styles/components/calendar.css');
+@import url('styles/components/filters.css');
+@import url('styles/components/sections.css');
+@import url('styles/components/responsive.css');
+
+/* End of reorganized styles.css */
 /* Elders gallery */
 .elders-section{margin-top:28px}
 .elders-section h2{margin:0 0 6px;color:var(--accent-dark)}
@@ -102,6 +127,9 @@ body{margin:0;font-family:Segoe UI, Roboto, Arial, sans-serif;background:var(--b
 .calendar-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:10px}
 .weekday{text-align:center;font-weight:700;color:var(--accent);font-size:0.85rem;padding:8px}
 .calendar-days{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+/* Vista semanal: días más grandes y detallados */
+.calendar-days.week-view{grid-template-columns:repeat(7,1fr);gap:12px}
+.calendar-days.week-view .calendar-day{min-height:160px;padding:12px}
 .calendar-day{min-height:120px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;padding:8px;border-radius:8px;border:1px solid rgba(11,96,209,0.1);background:var(--bg);position:relative;cursor:pointer;transition:all 0.2s ease;overflow:hidden}
 .calendar-day:hover{transform:scale(1.02);box-shadow:0 4px 12px rgba(11,96,209,0.15);border-color:var(--accent-2)}
 .calendar-day.other-month{opacity:0.3;pointer-events:none}
@@ -130,12 +158,77 @@ body{margin:0;font-family:Segoe UI, Roboto, Arial, sans-serif;background:var(--b
 .day-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:var(--accent-dark)}
 .calendar-day:hover .day-tooltip{opacity:1}
 
+/* Filtros rápidos */
+.quick-filters-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.btn-quick-filter{flex:1;min-width:140px;background:var(--accent-2);color:#fff;font-weight:600;border:none}
+.btn-quick-filter:hover{background:var(--accent);transform:translateY(-2px)}
+.btn-sm{font-size:0.85rem;padding:8px 12px}
+.filter-actions{display:flex;gap:8px;margin-top:12px}
+.filter-actions .btn{flex:1}
+
 @media (max-width:768px){
   .calendar-day{min-height:100px;padding:4px}
   .day-number{font-size:0.9rem;margin-bottom:4px}
   .day-interview-item{font-size:0.65rem;padding:3px 4px;margin-bottom:3px}
   .interview-name{font-size:0.65rem}
   .interview-time{font-size:0.6rem}
+  
+  /* Botones responsivos en tablets */
+  .controls-row{flex-wrap:wrap}
+  .controls-row .btn{font-size:0.85rem;padding:8px 10px}
+  .btn-icon{font-size:1em}
+  .site-header h1{font-size:1.15rem}
+  .site-header .logo{width:48px;height:48px}
+  .reports-grid{grid-template-columns:1fr}
+  .interviews-grid{grid-template-columns:1fr}
+  .notes-grid{grid-template-columns:1fr}
+  .kpis-grid{grid-template-columns:repeat(2, 1fr)}
+  .charts-grid{grid-template-columns:1fr}
+  .filters-grid{grid-template-columns:1fr}
+  
+  /* Dashboard */
+  .dashboard-section h2{font-size:1.3rem}
+  .top-interviewers h4{font-size:1rem}
+}
+
+@media (max-width:640px){
+  /* Botones responsivos en móviles */
+  .controls-row{flex-wrap:wrap;gap:6px}
+  .controls-row .btn{flex:1 1 calc(50% - 3px);min-width:0;font-size:0.8rem;padding:8px 8px;justify-content:center}
+  .controls-row .btn span:not(.btn-icon):not(#viewIcon):not(#weekViewIcon){display:none}
+  .btn-icon,#viewIcon,#weekViewIcon{font-size:1.2em}
+  .btn-new{flex:1 1 100%;padding:10px 12px}
+  .btn-new span{display:inline}
+  
+  /* Filtros rápidos en móvil */
+  .quick-filters-row{flex-direction:column;gap:8px}
+  .btn-quick-filter{min-width:100%;flex:1 1 100%}
+  
+  /* Panel de filtros */
+  .filters-grid{gap:12px}
+  .filter-group label{font-size:0.85rem}
+  .checkbox-group{display:flex;flex-direction:column;gap:6px}
+  
+  /* Formularios */
+  .form-actions{flex-direction:column}
+  .form-actions .btn{width:100%}
+  .filter-actions{flex-direction:column}
+  .filter-actions .btn{width:100%}
+  
+  /* Tarjetas */
+  .card .actions{flex-direction:column}
+  .card .actions .btn{width:100%}
+  .interview-actions{flex-direction:column}
+  .interview-actions .btn{width:100%}
+  .note-footer{flex-direction:column;align-items:stretch}
+  .note-footer .btn{width:100%;margin-top:4px}
+  
+  /* Header */
+  .site-header{flex-direction:column;gap:12px;text-align:center}
+  .site-header .brand{flex-direction:column}
+  
+  /* Secciones */
+  .notes-section h2,.interviews-section h2{font-size:1.3rem}
 }
 
 @media (max-width:420px){
@@ -145,6 +238,19 @@ body{margin:0;font-family:Segoe UI, Roboto, Arial, sans-serif;background:var(--b
   .day-number{font-size:0.85rem}
   .day-interview-item{font-size:0.6rem;padding:2px 3px}
   .weekday{font-size:0.75rem;padding:4px}
+  
+  /* Botones extra pequeños */
+  .controls-row .btn{font-size:0.75rem;padding:6px 6px}
+  .btn-icon,#viewIcon,#weekViewIcon{font-size:1.3em}
+  
+  /* KPIs más compactos */
+  .kpis-grid{grid-template-columns:1fr;gap:8px}
+  .kpi-card{padding:12px}
+  
+  /* Calendario más compacto */
+  .calendar-view{padding:12px}
+  .calendar-header{flex-direction:column;gap:8px}
+  .current-month{font-size:1.2rem}
 }
 
 /* Estilos para notas/recordatorios */

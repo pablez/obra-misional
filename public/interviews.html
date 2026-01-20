@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Reportes — La Chimba</title>
+  <title>Entrevistas — La Chimba</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="responsive-fixes.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,84 +14,7 @@
   <div id="siteHeader"></div>
 
   <main class="container">
-    <section class="search-global-section">
-      <input id="globalSearch" type="search" placeholder="🔍 Buscar en todo: entrevistas, notas, reportes..." class="global-search-input" aria-label="Búsqueda global">
-      <div id="globalSearchResults" class="global-search-results hidden"></div>
-    </section>
-    
-    <section class="controls">
-      <div class="controls-row">
-        <input id="search" type="search" placeholder="Buscar reportes por título..." aria-label="Buscar reportes">
-        <button id="refreshBtn" class="btn btn-ghost">🔄 Refrescar</button>
-        <button id="newBtn" class="btn btn-primary btn-new">
-          <span class="btn-icon">➕</span>
-          <span>Agregar reporte</span>
-        </button>
-      </div>
-      <div id="formPanel" class="form-panel hidden" aria-hidden="true">
-        <h3 id="formTitle">Agregar reporte</h3>
-        <form id="reportForm">
-          <div class="form-row"><label>Título</label><input name="title" required></div>
-          <div class="form-row"><label>Descripción</label><textarea name="description"></textarea></div>
-          <div class="form-row"><label>Fecha</label><input name="date" type="date"></div>
-          <div class="form-row"><label>Enlace (Drive)</label><input name="link" type="url"></div>
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Guardar</button>
-            <button type="button" id="cancelForm" class="btn btn-ghost">Cancelar</button>
-          </div>
-        </form>
-      </div>
-    </section>
 
-    <section id="reports" class="reports-grid" aria-live="polite"></section>
-    
-    <!-- Dashboard de Estadísticas -->
-    <section class="dashboard-section">
-      <h2>📊 Dashboard de Estadísticas</h2>
-      
-      <!-- KPIs -->
-      <div class="kpis-grid">
-        <div class="kpi-card">
-          <div class="kpi-value" id="kpiTotalEntrevistas">0</div>
-          <div class="kpi-label">Total Entrevistas</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-value" id="kpiCompletadas">0</div>
-          <div class="kpi-label">Completadas</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-value" id="kpiPendientes">0</div>
-          <div class="kpi-label">Pendientes</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-value" id="kpiPorcentaje">0%</div>
-          <div class="kpi-label">Tasa Completación</div>
-        </div>
-      </div>
-      
-      <!-- Gráficos -->
-      <div class="charts-grid">
-        <div class="chart-container">
-          <h4>Estado de Entrevistas</h4>
-          <canvas id="chartEstado"></canvas>
-        </div>
-        <div class="chart-container">
-          <h4>Top 5 Entrevistadores</h4>
-          <canvas id="chartEntrevistadores"></canvas>
-        </div>
-        <div class="chart-container" style="grid-column: 1 / -1;">
-          <h4>Entrevistas por Mes</h4>
-          <canvas id="chartMeses"></canvas>
-        </div>
-      </div>
-      
-      <!-- Top Entrevistadores -->
-      <div class="top-interviewers">
-        <h4>Estadísticas por Entrevistador</h4>
-        <div id="topInterviewersList" class="interviewer-list"></div>
-      </div>
-    </section>
-    
     <section class="interviews-section">
       <h2>📅 Agenda de Entrevistas 2026</h2>
       <div class="controls-row">
@@ -107,10 +30,9 @@
           <span id="weekViewIcon">📆</span>
           <span id="weekViewText">Vista Semanal</span>
         </button>
-        <button id="toggleFiltersBtn" class="btn btn-ghost">
+        <button id="toggleFiltersBtn" type="button" class="btn btn-ghost">
           <span>🔍 Filtros</span>
         </button>
-        <!-- Export buttons removed (Excel & PDF) -->
         <button id="auditHistoryBtn" class="btn btn-ghost" title="Ver historial de cambios">
           <span>📋 Historial</span>
         </button>
@@ -155,7 +77,6 @@
           <button id="applyFiltersBtn" class="btn btn-primary">Aplicar Filtros</button>
           <button id="clearFiltersBtn" class="btn btn-ghost">Limpiar</button>
           <button id="printBtn" type="button" class="btn btn-ghost" title="Generar reporte detallado de entrevistas" aria-label="Generar reporte detallado">🖨️ Reporte Detallado</button>
-          <button id="testFiltersBtn" type="button" class="btn btn-ghost" title="Probar filtros con datos de prueba" style="background: #e0f2fe; color: #0277bd;">🧪 Test</button>
         </div>
       </div>
       <div id="interviewFormPanel" class="form-panel hidden" aria-hidden="true">
@@ -205,36 +126,19 @@
       <!-- Vista de Lista -->
       <div id="listView" class="interviews-grid hidden" aria-live="polite"></div>
     </section>
-    
-    <!-- Sección de Notas/Recordatorios -->
-    <section class="notes-section">
-      <h2>📝 Recordatorios</h2>
-      <div id="notesList" class="notes-grid" aria-live="polite"></div>
-    </section>
 
-    <!-- Plantillas de Notas eliminadas -->
-
-    <!-- Gestión de misioneros eliminada -->
-    
-    <section id="elders" class="elders-section">
-      <h2>Misioneros</h2>
-      <p class="subtitle small">Conoce a los elderes de la zona</p>
-      <div id="eldersGrid" class="elders-grid" aria-live="polite"></div>
-    </section>
   </main>
 
   <div id="siteFooter"></div>
 
   <script src="components/header-footer.js"></script>
   <script src="script.js"></script>
-  <script src="scripts/interviews.js"></script>
+   <script src="scripts/interviews.js"></script>
   <script src="debug.js"></script>
   <script src="components/loader.js"></script>
   <script src="components/dashboard.js"></script>
   <script src="components/audit.js"></script>
   <script src="components/alerts.js"></script>
-  <!-- templates.js eliminado -->
-  <!-- Missionaries component removed -->
   <script src="components/core.js"></script>
 </body>
 </html>

@@ -75,11 +75,17 @@ const AlertsComponent = {
 
   // Actualizar contador de notificaciones
   updateNotificationCounter(count) {
-    let counter = document.querySelector('.notification-counter');
+    const bell = document.querySelector('.notification-bell');
+    if (!bell) {
+      // Si no existe el contenedor de la campana, no hacemos más para evitar errores.
+      return;
+    }
+
+    let counter = bell.querySelector('.notification-counter');
     if (!counter) {
       counter = document.createElement('div');
       counter.className = 'notification-counter';
-      document.querySelector('.notification-bell').appendChild(counter);
+      bell.appendChild(counter);
     }
 
     if (count > 0) {

@@ -1,0 +1,98 @@
+@media (max-width:768px){
+  .calendar-day{min-height:100px;padding:4px}
+  .day-number{font-size:0.9rem;margin-bottom:4px}
+  .day-interview-item{font-size:0.65rem;padding:3px 4px;margin-bottom:3px}
+  .interview-name{font-size:0.65rem}
+  .interview-time{font-size:0.6rem}
+  
+  /* Botones responsivos en tablets */
+  .controls-row{flex-wrap:wrap}
+  .controls-row .btn{font-size:0.85rem;padding:8px 10px}
+  .btn-icon{font-size:1em}
+  .site-header h1{font-size:1.15rem}
+  .site-header .logo{width:48px;height:48px}
+  .reports-grid{grid-template-columns:1fr}
+  .interviews-grid{grid-template-columns:1fr}
+  .notes-grid{grid-template-columns:1fr}
+  .kpis-grid{grid-template-columns:repeat(2, 1fr)}
+  .charts-grid{grid-template-columns:1fr}
+  .filters-grid{grid-template-columns:1fr}
+  
+  /* Dashboard */
+  .dashboard-section h2{font-size:1.3rem}
+  .top-interviewers h4{font-size:1rem}
+}
+
+@media (max-width:640px){
+  /* Botones responsivos en móviles */
+  .controls-row{flex-wrap:wrap;gap:6px}
+  .controls-row .btn{flex:1 1 calc(50% - 3px);min-width:0;font-size:0.8rem;padding:8px 8px;justify-content:center}
+  .controls-row .btn span:not(.btn-icon):not(#viewIcon):not(#weekViewIcon){display:none}
+  .btn-icon,#viewIcon,#weekViewIcon{font-size:1.2em}
+  .btn-new{flex:1 1 100%;padding:10px 12px}
+  .btn-new span{display:inline}
+  
+  /* Filtros rápidos en móvil */
+  .quick-filters-row{flex-direction:column;gap:8px}
+  .btn-quick-filter{min-width:100%;flex:1 1 100%}
+  
+  /* Panel de filtros */
+  .filters-grid{gap:12px}
+  .filter-group label{font-size:0.85rem}
+  .checkbox-group{display:flex;flex-direction:column;gap:6px}
+  
+  /* Formularios */
+  .form-actions{flex-direction:column}
+  .form-actions .btn{width:100%}
+  .filter-actions{flex-direction:column}
+  .filter-actions .btn{width:100%}
+  
+  /* Tarjetas */
+  .card .actions{flex-direction:column}
+  .card .actions .btn{width:100%}
+  .interview-actions{flex-direction:column}
+  .interview-actions .btn{width:100%}
+  .note-footer{flex-direction:column;align-items:stretch}
+  .note-footer .btn{width:100%;margin-top:4px}
+  
+  /* Header */
+  .site-header{flex-direction:row;gap:12px;align-items:center}
+  .site-header .brand{flex-direction:row;align-items:center}
+  .nav-toggle{display:inline-flex}
+  .main-nav{display:flex;flex-direction:column;gap:8px;position:absolute;top:100%;left:8px;right:8px;background:var(--accent);padding:12px;border-radius:12px;box-shadow:0 12px 36px rgba(0,0,0,0.2);overflow:hidden;max-height:0;opacity:0;transform:translateY(-8px);transition: max-height 320ms cubic-bezier(.2,.9,.2,1), opacity 220ms ease, transform 220ms ease;z-index:1200}
+  .main-nav.open{display:flex !important;max-height:520px;opacity:1;transform:translateY(0)}
+  .main-nav .nav-link{background:transparent;color:#fff;padding:10px;border-radius:8px}
+  .main-nav .nav-link{opacity:0;transform:translateY(-6px);transition:opacity 220ms ease, transform 220ms ease}
+  .main-nav.open .nav-link{opacity:1;transform:translateY(0)}
+
+  /* Backdrop behind mobile nav */
+  .nav-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:1150;opacity:0;transition:opacity 220ms ease}
+  .nav-backdrop.visible{opacity:1}
+  .main-nav[aria-hidden="true"]{pointer-events:none}
+  .header-utils{margin-left:auto}
+  
+  /* Secciones */
+  .notes-section h2,.interviews-section h2{font-size:1.3rem}
+}
+
+@media (max-width:420px){
+  .elder-photo{width:120px;height:120px}
+  .interviews-grid{grid-template-columns:1fr}
+  .calendar-day{min-height:80px;padding:3px}
+  .day-number{font-size:0.85rem}
+  .day-interview-item{font-size:0.6rem;padding:2px 3px}
+  .weekday{font-size:0.75rem;padding:4px}
+  
+  /* Botones extra pequeños */
+  .controls-row .btn{font-size:0.75rem;padding:6px 6px}
+  .btn-icon,#viewIcon,#weekViewIcon{font-size:1.3em}
+  
+  /* KPIs más compactos */
+  .kpis-grid{grid-template-columns:1fr;gap:8px}
+  .kpi-card{padding:12px}
+  
+  /* Calendario más compacto */
+  .calendar-view{padding:12px}
+  .calendar-header{flex-direction:column;gap:8px}
+  .current-month{font-size:1.2rem}
+}

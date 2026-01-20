@@ -1,28 +1,5 @@
-const { google } = require('googleapis');
-
-async function getAuthorizedClient() {
-  const SHEET_ID = process.env.SHEET_ID;
-  if (!SHEET_ID) {
-    throw new Error('SHEET_ID no está configurado en las variables de entorno');
-  }
-
-  const credentials = {
-    client_email: process.env.GOOGLE_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-  };
-
-  const auth = new google.auth.JWT({
-    email: credentials.client_email,
-    key: credentials.private_key,
-    scopes: [
-      'https://www.googleapis.com/auth/spreadsheets',
-      'https://www.googleapis.com/auth/drive.readonly'
-    ]
-  });
-
-  await auth.authorize();
-  return { auth, SHEET_ID };
-}
+// Función eliminada: creación de recordatorios deshabilitada
+// Este archivo ha sido vaciado porque la funcionalidad de notas fue removida
 
 exports.handler = async (event, context) => {
   const headers = {

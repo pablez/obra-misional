@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reportes — La Chimba</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="responsive-fixes.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf@0.10.1/dist/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+  <div id="siteHeader"></div>
+
+  <main class="container">
+    <section class="controls">
+      <div class="controls-row">
+        <input id="search" type="search" placeholder="Buscar reportes por título..." aria-label="Buscar reportes">
+        <button id="refreshBtn" class="btn btn-ghost">🔄 Refrescar</button>
+        <button id="newBtn" class="btn btn-primary btn-new">
+          <span class="btn-icon">➕</span>
+          <span>Agregar reporte</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="reports" class="reports-grid" aria-live="polite"></section>
+  </main>
+
+  <div id="siteFooter"></div>
+
+  <script src="components/header-footer.js"></script>
+  <script src="script.js"></script>
+  <script src="scripts/interviews.js"></script>
+  <script src="components/core.js"></script>
+</body>
+</html>

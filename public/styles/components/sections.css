@@ -1,0 +1,68 @@
+/* Sections: notes, templates, missionaries, dashboard, KPIs, charts */
+.dashboard-section{margin-top:32px;padding:20px;background:var(--card);border-radius:12px;box-shadow:0 6px 18px rgba(14,30,37,0.06)}
+.dashboard-section h2{color:var(--accent-dark);margin-top:0}
+.kpis-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px}
+.kpi-card{background:linear-gradient(135deg, rgba(11,96,209,0.1) 0%, rgba(96,165,250,0.1) 100%);padding:20px;border-radius:12px;border:1px solid rgba(11,96,209,0.2);text-align:center}
+.kpi-value{font-size:2.5rem;font-weight:700;color:var(--accent-dark);margin-bottom:8px}
+.kpi-label{color:var(--muted);font-size:0.9rem;font-weight:600}
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:24px;margin-bottom:24px}
+.chart-container{background:rgba(11,96,209,0.02);padding:16px;border-radius:12px;border:1px solid rgba(11,96,209,0.1)}
+.chart-container h4{margin:0 0 16px;color:var(--accent-dark)}
+.chart-container canvas{max-height:300px}
+.top-interviewers{background:rgba(11,96,209,0.02);padding:16px;border-radius:12px;border:1px solid rgba(11,96,209,0.1)}
+.top-interviewers h4{margin:0 0 16px;color:var(--accent-dark)}
+.interviewer-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.interviewer-item{background:var(--card);padding:12px;border-radius:8px;border-left:4px solid var(--accent)}
+.interviewer-name{font-weight:600;color:var(--accent-dark);margin-bottom:8px}
+.interviewer-stat{display:flex;justify-content:space-between;font-size:0.9rem;color:var(--muted);margin:4px 0}
+
+/* Notes */
+.notes-section{margin-top:32px}
+.notes-section h2{color:var(--accent-dark);margin-bottom:12px;font-size:1.6rem}
+.notes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.note-card{background:var(--card);border-left:5px solid #10b981;border-radius:8px;padding:16px;box-shadow:0 4px 12px rgba(11,96,209,0.08);transition:all .2s ease}
+.note-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(11,96,209,0.12)}
+.note-card.priority-baja{border-left-color:#10b981}
+.note-card.priority-media{border-left-color:#f59e0b}
+.note-card.priority-alta{border-left-color:#ef4444}
+.note-card.priority-urgente{border-left-color:#dc2626;background:rgba(220,38,38,0.04)}
+.note-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.note-type{display:inline-block;background:rgba(11,96,209,0.1);color:var(--accent-dark);padding:4px 10px;border-radius:20px;font-size:0.8rem;font-weight:600}
+.note-date{color:var(--muted);font-size:0.85rem}
+.note-content{margin-bottom:12px}
+.note-content p{margin:0 0 8px;color:#374151;font-size:0.95rem;line-height:1.4}
+.note-related{color:#666;font-size:0.9rem;padding:6px;background:rgba(0,0,0,0.02);border-radius:4px;margin-top:6px}
+.note-footer{display:flex;justify-content:flex-end}
+.note-priority{display:inline-block;color:#fff;padding:4px 10px;border-radius:4px;font-size:0.75rem;font-weight:700}
+
+/* Templates and Missionaries sections kept for reference (stubs) */
+.templates-section{background:var(--card);border:2px solid #e0e7ff;padding:20px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(11,96,209,0.08)}
+.templates-section h2{margin:0 0 16px;color:var(--accent-dark);font-size:1.3rem}
+.templates-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.template-card{background:#f8faff;border:1px solid #dbeafe;padding:12px;border-radius:8px;transition:all 0.2s ease}
+.template-card:hover{background:#dbeafe;box-shadow:0 4px 8px rgba(11,96,209,0.15)}
+
+.missionaries-section{background:var(--card);border:2px solid #fecaca;padding:20px;border-radius:12px;margin-bottom:20px;box-shadow:0 4px 12px rgba(220,38,38,0.08)}
+.missionaries-section h2{margin:0 0 16px;color:var(--accent-dark);font-size:1.3rem}
+.missionaries-controls{display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.missionaries-controls select{padding:8px 12px;border:1px solid #fed7aa;border-radius:6px;background:var(--card);cursor:pointer;font-size:0.95rem}
+.missionaries-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.missionary-card{background:#fefce8;border:1px solid #fde047;padding:14px;border-radius:8px;transition:all 0.2s ease}
+.missionary-card:hover{background:#fef08a;box-shadow:0 4px 8px rgba(220,38,38,0.12)}
+.missionary-card-header{display:flex;justify-content:space-between;align-items:start;margin-bottom:10px}
+.missionary-name{font-weight:700;color:var(--accent-dark);font-size:1.05rem}
+.missionary-status{display:inline-block;font-size:0.75rem;font-weight:700;padding:4px 10px;border-radius:12px;margin-left:8px}
+.missionary-status.active{background:#dcfce7;color:#15803d}
+.missionary-status.inactive{background:#fee2e2;color:#991b1b}
+.missionary-info{display:grid;gap:6px;margin:10px 0;font-size:0.9rem}
+.missionary-info-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(0,0,0,0.05)}
+.missionary-info-item span:first-child{font-weight:600;color:var(--muted)}
+.missionary-info-item span:last-child{color:#333}
+.missionary-actions{display:flex;gap:6px;margin-top:12px}
+.missionary-actions button{flex:1;font-size:0.85rem;padding:6px 8px}
+.missionary-stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:16px}
+.stat-box{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #bfdbfe;padding:12px;border-radius:8px;text-align:center}
+.stat-box.active{background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-color:#86efac}
+.stat-box.inactive{background:linear-gradient(135deg,#fee2e2,#fecaca);border-color:#fca5a5}
+.stat-number{font-size:1.8rem;font-weight:700;color:var(--accent-dark);margin:0}
+.stat-label{font-size:0.85rem;color:var(--muted);margin:4px 0 0}

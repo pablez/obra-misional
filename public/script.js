@@ -26,10 +26,61 @@ const elders = [
 // Entrevistas
 const interviews = [];
 
-// Notas/Recordatorios
+// Datos de prueba para verificar filtros
+interviews.push({
+  id: 'test1',
+  nombre: 'Juan Pérez',
+  fecha: '2026-01-15',
+  hora: '10:00',
+  entrevistador: 'Obispo',
+  notas: 'Entrevista de membresía',
+  estado: 'Pendiente'
+});
+
+interviews.push({
+  id: 'test2', 
+  nombre: 'María López',
+  fecha: '2026-01-14',
+  hora: '14:30',
+  entrevistador: 'Mosiah',
+  notas: 'Entrevista de llamamiento',
+  estado: 'Pendiente'
+});
+
+interviews.push({
+  id: 'test3',
+  nombre: 'Carlos Ruiz',
+  fecha: '2026-01-16',
+  hora: '09:00', 
+  entrevistador: 'Pablo',
+  notas: 'Entrevista regular',
+  estado: 'Completada'
+});
+
+interviews.push({
+  id: 'test4',
+  nombre: 'Ana Torres',
+  fecha: '2026-01-13',
+  hora: '16:00',
+  entrevistador: 'Obispo', 
+  notas: 'Entrevista de recomendación',
+  estado: 'Pendiente'
+});
+
+interviews.push({
+  id: 'test5',
+  nombre: 'Pedro González',
+  fecha: '2026-01-17',
+  hora: '11:00',
+  entrevistador: 'Mosiah',
+  notas: 'Entrevista de progreso',
+  estado: 'Pendiente'
+});
+
+// Sistema de notas/recordatorios eliminado (array vacío para evitar errores)
 const notes = [];
 
-// Plantillas de Notas
+// Plantillas de Notas eliminadas
 const templates = [];
 
 // Misioneros
@@ -45,7 +96,11 @@ const $notesList = document.getElementById('notesList');
 // Estado del calendario
 let currentYear = 2026;
 let currentMonth = 0; // Enero
-let viewMode = 'calendar'; // 'calendar' o 'list'
+let currentWeekStart = null; // Para vista semanal
+let viewMode = 'calendar'; // 'calendar', 'list', o 'week'
+let calendarViewMode = 'month'; // 'month' o 'week'
+// Lista actualmente renderizada en la vista (se actualiza en renderInterviews)
+let currentRenderedInterviews = [];
 
 // Historial de auditoría
 const auditLog = [];
@@ -55,8 +110,7 @@ let activeFilters = {
   states: ['Pendiente', 'Completada', 'Cancelada'],
   entrevistador: '',
   fechaDesde: '',
-  fechaHasta: '',
-  priorities: ['URGENTE', 'Alta', 'Media', 'Baja']
+  fechaHasta: ''
 };
 
 const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
@@ -265,6 +319,9 @@ function renderInterviews(list, dateFilter = null){
   if(dateFilter) {
     filtered = list.filter(i => i.fecha === dateFilter);
   }
+
+  // Guardar la lista actualmente renderizada (útil para exportaciones)
+  currentRenderedInterviews = filtered.slice();
   
   if(!filtered.length){ 
     const msg = dateFilter ? 'No hay entrevistas para este día.' : 'No hay entrevistas programadas.';
@@ -306,22 +363,36 @@ function getTodayDateStr() {
 
 // Filtrar entrevistas según filtros activos
 function applyInterviewFilters(list) {
-  return list.filter(i => {
+  console.log('🔍 Aplicando filtros a', list.length, 'entrevistas con filtros:', activeFilters);
+  
+  const filtered = list.filter(i => {
     // Filtro de estado
-    if(!activeFilters.states.includes(i.estado)) return false;
+    if(!activeFilters.states.includes(i.estado)) {
+      return false;
+    }
     
-    // Filtro de entrevistador
-    if(activeFilters.entrevistador && 
-       !i.entrevistador?.toLowerCase().includes(activeFilters.entrevistador.toLowerCase())) {
+    // Filtro de entrevistador (select con opciones específicas)
+    if(activeFilters.entrevistador && activeFilters.entrevistador !== '' && 
+       i.entrevistador !== activeFilters.entrevistador) {
       return false;
     }
     
     // Filtro de rango de fechas
-    if(activeFilters.fechaDesde && i.fecha < activeFilters.fechaDesde) return false;
-    if(activeFilters.fechaHasta && i.fecha > activeFilters.fechaHasta) return false;
+    if(activeFilters.fechaDesde && i.fecha < activeFilters.fechaDesde) {
+      return false;
+    }
+    if(activeFilters.fechaHasta && i.fecha > activeFilters.fechaHasta) {
+      return false;
+    }
     
     return true;
   });
+  
+  console.log('✅ Resultado:', filtered.length, 'entrevistas filtradas');
+  if(filtered.length > 0) {
+    console.log('📋 Entrevistas que pasaron el filtro:', filtered.map(i => `${i.nombre} (${i.estado}, ${i.entrevistador}, ${i.fecha})`));
+  }
+  return filtered;
 }
 
 // Búsqueda global
@@ -346,21 +417,7 @@ function globalSearch(query) {
     }
   });
   
-  // Buscar en notas
-  notes.forEach(n => {
-    if(n.nota?.toLowerCase().includes(q) ||
-       n.tipo?.toLowerCase().includes(q) ||
-       n.relacionadoA?.toLowerCase().includes(q)) {
-      results.push({
-        type: 'note',
-        id: n.fecha + n.nota.substring(0,10),
-        title: n.tipo,
-        subtitle: `${n.fecha} - Prioridad: ${n.prioridad}`,
-        text: n.nota.substring(0, 60) + (n.nota.length > 60 ? '...' : ''),
-        data: n
-      });
-    }
-  });
+  // Búsqueda en notas eliminada - sistema de recordatorios deshabilitado
   
   // Buscar en reportes
   reports.forEach(r => {
@@ -427,13 +484,7 @@ function renderGlobalSearchResults(results) {
 }
 
 // Filtrar notas según filtros activos
-function applyNotesFilters(list) {
-  return list.filter(n => {
-    // Filtro de prioridad
-    if(!activeFilters.priorities.includes(n.prioridad)) return false;
-    return true;
-  });
-}
+// applyNotesFilters removed (prioridad de recordatorio ya no existe)
 
 // Calcular estadísticas de entrevistas
 function calculateStatistics() {
@@ -471,15 +522,349 @@ function calculateStatistics() {
   return stats;
 }
 
+// Generar reporte detallado de entrevistas
+function generateDetailedInterviewReport() {
+  try {
+    console.log('🖨️ Generando reporte detallado de entrevistas...');
+    
+    // Usar datos filtrados si están disponibles, o todos los datos
+    const reportData = window.interviewsFiltered || interviews;
+    const stats = calculateStatistics();
+    const currentDate = new Date().toLocaleDateString('es-ES', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Obtener filtros activos para mostrar en el reporte
+    const appliedFilters = [];
+    if (activeFilters.entrevistador && activeFilters.entrevistador !== 'Todos') {
+      appliedFilters.push(`Entrevistador: ${activeFilters.entrevistador}`);
+    }
+    if (activeFilters.estados && activeFilters.estados.length > 0) {
+      appliedFilters.push(`Estados: ${activeFilters.estados.join(', ')}`);
+    }
+    if (activeFilters.fechaInicio) {
+      appliedFilters.push(`Desde: ${activeFilters.fechaInicio}`);
+    }
+    if (activeFilters.fechaFin) {
+      appliedFilters.push(`Hasta: ${activeFilters.fechaFin}`);
+    }
+
+    // Generar HTML del reporte
+    let reportHTML = `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reporte Detallado de Entrevistas - ${currentDate}</title>
+        <style>
+          body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 30px; 
+            background: #ffffff;
+            color: #333;
+            line-height: 1.6;
+          }
+          .report-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4CAF50;
+          }
+          .report-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c5282;
+            margin: 0;
+          }
+          .report-subtitle {
+            font-size: 16px;
+            color: #666;
+            margin: 10px 0;
+          }
+          .report-date {
+            font-size: 14px;
+            color: #999;
+          }
+          .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+          }
+          .stat-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+          }
+          .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4CAF50;
+            margin: 0;
+          }
+          .stat-label {
+            font-size: 14px;
+            color: #666;
+            margin: 5px 0 0 0;
+          }
+          .filters-section {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+          }
+          .filters-title {
+            font-weight: bold;
+            color: #1976d2;
+            margin: 0 0 10px 0;
+          }
+          .interviews-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          }
+          .interviews-table th {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: bold;
+          }
+          .interviews-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #ddd;
+          }
+          .interviews-table tr:nth-child(even) {
+            background: #f9f9f9;
+          }
+          .interviews-table tr:hover {
+            background: #f1f8e9;
+          }
+          .estado {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+          }
+          .estado-pendiente { background: #fff3cd; color: #856404; }
+          .estado-completada { background: #d4edda; color: #155724; }
+          .estado-cancelada { background: #f8d7da; color: #721c24; }
+          .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2c5282;
+            margin: 30px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+          }
+          .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 20px 0;
+          }
+          .summary-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+          }
+          .summary-section h4 {
+            margin: 0 0 15px 0;
+            color: #495057;
+          }
+          .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #dee2e6;
+          }
+          .summary-item:last-child {
+            border-bottom: none;
+          }
+          @media print {
+            body { padding: 20px; }
+            .stat-card { break-inside: avoid; }
+            .interviews-table { break-inside: avoid; }
+            .summary-section { break-inside: avoid; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="report-header">
+          <h1 class="report-title">REPORTE DETALLADO DE ENTREVISTAS</h1>
+          <p class="report-subtitle">Iglesia de Jesucristo de los Santos de los Últimos Días</p>
+          <p class="report-date">Generado el: ${currentDate}</p>
+        </div>`;
+
+    // Mostrar filtros aplicados
+    if (appliedFilters.length > 0) {
+      reportHTML += `
+        <div class="filters-section">
+          <h3 class="filters-title">🔍 Filtros Aplicados:</h3>
+          <p>${appliedFilters.join(' | ')}</p>
+        </div>`;
+    }
+
+    // Estadísticas generales
+    reportHTML += `
+      <div class="stats-grid">
+        <div class="stat-card">
+          <p class="stat-value">${reportData.length}</p>
+          <p class="stat-label">Total de Entrevistas</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-value">${reportData.filter(i => i.estado === 'Completada').length}</p>
+          <p class="stat-label">Completadas</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-value">${reportData.filter(i => i.estado === 'Pendiente').length}</p>
+          <p class="stat-label">Pendientes</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-value">${reportData.filter(i => i.estado === 'Cancelada').length}</p>
+          <p class="stat-label">Canceladas</p>
+        </div>
+      </div>`;
+
+    // Resúmenes por categoría
+    const entrevistadorCounts = {};
+    const estadoCounts = {};
+    reportData.forEach(interview => {
+      entrevistadorCounts[interview.entrevistador] = (entrevistadorCounts[interview.entrevistador] || 0) + 1;
+      estadoCounts[interview.estado] = (estadoCounts[interview.estado] || 0) + 1;
+    });
+
+    reportHTML += `
+      <div class="summary-grid">
+        <div class="summary-section">
+          <h4>📊 Por Entrevistador</h4>`;
+    Object.entries(entrevistadorCounts).forEach(([entrevistador, count]) => {
+      reportHTML += `
+          <div class="summary-item">
+            <span>${entrevistador}</span>
+            <span><strong>${count}</strong></span>
+          </div>`;
+    });
+    reportHTML += `
+        </div>
+        
+        <div class="summary-section">
+          <h4>📈 Por Estado</h4>`;
+    Object.entries(estadoCounts).forEach(([estado, count]) => {
+      reportHTML += `
+          <div class="summary-item">
+            <span>${estado}</span>
+            <span><strong>${count}</strong></span>
+          </div>`;
+    });
+    reportHTML += `
+        </div>
+      </div>`;
+
+    // Tabla detallada de entrevistas
+    reportHTML += `
+      <h2 class="section-title">📋 Detalle de Entrevistas</h2>
+      <table class="interviews-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Fecha</th>
+            <th>Hora</th>
+            <th>Entrevistador</th>
+            <th>Estado</th>
+            <th>Notas</th>
+          </tr>
+        </thead>
+        <tbody>`;
+
+    // Ordenar entrevistas por fecha
+    const sortedInterviews = [...reportData].sort((a, b) => {
+      const dateA = new Date(a.fecha || '1970-01-01');
+      const dateB = new Date(b.fecha || '1970-01-01');
+      return dateA - dateB;
+    });
+
+    sortedInterviews.forEach(interview => {
+      const estadoClass = `estado-${interview.estado?.toLowerCase() || 'pendiente'}`;
+      const fechaFormatted = interview.fecha ? 
+        new Date(interview.fecha + 'T00:00:00').toLocaleDateString('es-ES', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        }) : 'Sin fecha';
+      
+      reportHTML += `
+        <tr>
+          <td><strong>${interview.nombre || 'Sin nombre'}</strong></td>
+          <td>${fechaFormatted}</td>
+          <td>${interview.hora || 'Sin hora'}</td>
+          <td>${interview.entrevistador || 'Sin asignar'}</td>
+          <td><span class="estado ${estadoClass}">${interview.estado || 'Pendiente'}</span></td>
+          <td>${interview.notas || 'Sin notas'}</td>
+        </tr>`;
+    });
+
+    reportHTML += `
+        </tbody>
+      </table>
+    </body>
+    </html>`;
+
+    // Abrir en nueva ventana e imprimir
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('Por favor permite ventanas emergentes para generar el reporte.');
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(reportHTML);
+    printWindow.document.close();
+
+    // Auto-imprimir después de cargar
+    printWindow.onload = () => {
+      setTimeout(() => {
+        try {
+          printWindow.focus();
+          printWindow.print();
+        } catch (err) {
+          console.warn('Error al imprimir automáticamente:', err);
+        }
+      }, 500);
+    };
+
+    console.log('✅ Reporte detallado generado exitosamente');
+
+  } catch (error) {
+    console.error('❌ Error al generar reporte detallado:', error);
+    alert('Error al generar el reporte: ' + error.message);
+  }
+}
+
 // Mostrar estadísticas en el dashboard
 function renderDashboard() {
   const stats = calculateStatistics();
   
   // Actualizar KPIs
-  document.getElementById('kpiTotalEntrevistas').textContent = stats.total;
-  document.getElementById('kpiCompletadas').textContent = stats.completadas;
-  document.getElementById('kpiPendientes').textContent = stats.pendientes;
-  document.getElementById('kpiPorcentaje').textContent = stats.porcentaje + '%';
+  const kpiTotal = document.getElementById('kpiTotalEntrevistas');
+  const kpiCompletadas = document.getElementById('kpiCompletadas');
+  const kpiPendientes = document.getElementById('kpiPendientes');
+  const kpiPorcentaje = document.getElementById('kpiPorcentaje');
+
+  if (kpiTotal) kpiTotal.textContent = stats.total;
+  if (kpiCompletadas) kpiCompletadas.textContent = stats.completadas;
+  if (kpiPendientes) kpiPendientes.textContent = stats.pendientes;
+  if (kpiPorcentaje) kpiPorcentaje.textContent = stats.porcentaje + '%';
   
   // Gráfico de estado
   renderChartEstado(stats);
@@ -490,8 +875,10 @@ function renderDashboard() {
   // Gráfico de meses
   renderChartMeses(stats);
   
-  // Top entrevistadores
-  renderTopInterviewers(stats);
+  // Top entrevistadores (sólo si existe el contenedor)
+  if (document.getElementById('topInterviewersList')) {
+    renderTopInterviewers(stats);
+  }
 }
 
 // Gráfico: Estado de Entrevistas
@@ -623,12 +1010,26 @@ function renderTopInterviewers(stats) {
   });
 }
 
-// Renderizar calendario
+// Renderizar calendario (mensual o semanal según el modo)
 function renderCalendar(year, month) {
+  console.log('📅 Renderizando calendario para:', year, monthNames[month]);
+  console.log('📅 Entrevistas filtradas disponibles:', window.interviewsFiltered?.length || 'ninguna');
+  
+  if(calendarViewMode === 'week') {
+    renderWeekCalendar();
+    return;
+  }
+  
   const calendarDays = document.getElementById('calendarDays');
   const currentMonthEl = document.getElementById('currentMonth');
   
-  if(!calendarDays || !currentMonthEl) return;
+  if(!calendarDays || !currentMonthEl) {
+    console.error('❌ Elementos del calendario no encontrados');
+    return;
+  }
+  
+  // Remover clase week-view si existe
+  calendarDays.classList.remove('week-view');
   
   currentMonthEl.textContent = `${monthNames[month]} ${year}`;
   calendarDays.innerHTML = '';
@@ -676,9 +1077,17 @@ function createDayElement(dayNum, isOtherMonth, isToday = false, year = currentY
     dayEl.classList.add('today');
   }
   
-  // Buscar entrevistas para este día
+  // Buscar entrevistas para este día (usar filtros aplicados si existen)
   const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-  const dayInterviews = interviews.filter(i => i.fecha === dateStr);
+  const sourceInterviews = (window.interviewsFiltered && Array.isArray(window.interviewsFiltered)) ? window.interviewsFiltered : interviews;
+  const dayInterviews = sourceInterviews.filter(i => i.fecha === dateStr);
+  
+  if(!isOtherMonth) {
+    console.log(`📅 Día ${dateStr}: usando ${sourceInterviews === window.interviewsFiltered ? 'filtradas' : 'todas'}, encontradas: ${dayInterviews.length}`);
+    if(dayInterviews.length > 0) {
+      console.log(`📅 Entrevistas del día ${dateStr}:`, dayInterviews.map(i => `${i.nombre} (${i.entrevistador})`));
+    }
+  }
   
   if(dayInterviews.length > 0 && !isOtherMonth) {
     dayEl.classList.add('has-interview');
@@ -865,26 +1274,39 @@ function initCalendarNavigation() {
   const prevBtn = document.getElementById('prevMonth');
   const nextBtn = document.getElementById('nextMonth');
   const toggleViewBtn = document.getElementById('toggleViewBtn');
+  const toggleWeekViewBtn = document.getElementById('toggleWeekViewBtn');
   
   if(prevBtn) {
     prevBtn.addEventListener('click', () => {
-      currentMonth--;
-      if(currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
+      if(calendarViewMode === 'week') {
+        // Retroceder una semana
+        currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+        renderWeekCalendar();
+      } else {
+        currentMonth--;
+        if(currentMonth < 0) {
+          currentMonth = 11;
+          currentYear--;
+        }
+        renderCalendar(currentYear, currentMonth);
       }
-      renderCalendar(currentYear, currentMonth);
     });
   }
   
   if(nextBtn) {
     nextBtn.addEventListener('click', () => {
-      currentMonth++;
-      if(currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
+      if(calendarViewMode === 'week') {
+        // Avanzar una semana
+        currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+        renderWeekCalendar();
+      } else {
+        currentMonth++;
+        if(currentMonth > 11) {
+          currentMonth = 0;
+          currentYear++;
+        }
+        renderCalendar(currentYear, currentMonth);
       }
-      renderCalendar(currentYear, currentMonth);
     });
   }
   
@@ -903,127 +1325,242 @@ function initCalendarNavigation() {
         $listView.classList.remove('hidden');
         document.getElementById('viewIcon').textContent = '📅';
         document.getElementById('viewText').textContent = 'Vista Calendario';
-        renderInterviews(interviews, getTodayDateStr());
+        // Usar entrevistas filtradas si existen, sino usar todas
+        const sourceInterviews = (window.interviewsFiltered && Array.isArray(window.interviewsFiltered)) ? window.interviewsFiltered : interviews;
+        renderInterviews(sourceInterviews, getTodayDateStr());
+      }
+    });
+  }
+  
+  if(toggleWeekViewBtn) {
+    toggleWeekViewBtn.addEventListener('click', () => {
+      if(calendarViewMode === 'week') {
+        // Cambiar a vista mensual
+        calendarViewMode = 'month';
+        document.getElementById('weekViewIcon').textContent = '📆';
+        document.getElementById('weekViewText').textContent = 'Vista Semanal';
+        renderCalendar(currentYear, currentMonth);
+      } else {
+        // Cambiar a vista semanal
+        calendarViewMode = 'week';
+        // Inicializar con la semana actual
+        if(!currentWeekStart) {
+          currentWeekStart = new Date();
+          // Ajustar al domingo de esta semana
+          const day = currentWeekStart.getDay();
+          currentWeekStart.setDate(currentWeekStart.getDate() - day);
+        }
+        document.getElementById('weekViewIcon').textContent = '📅';
+        document.getElementById('weekViewText').textContent = 'Vista Mensual';
+        renderWeekCalendar();
       }
     });
   }
 }
 
-// Funciones para manejar notas/recordatorios
+// ==================== VISTA SEMANAL ====================
+
+function renderWeekCalendar() {
+  const calendarDays = document.getElementById('calendarDays');
+  const currentMonthEl = document.getElementById('currentMonth');
+  
+  if(!calendarDays || !currentMonthEl) return;
+  
+  // Agregar clase para vista semanal
+  calendarDays.classList.add('week-view');
+  
+  // Calcular rango de la semana
+  const weekEnd = new Date(currentWeekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+  
+  const monthStart = monthNames[currentWeekStart.getMonth()];
+  const monthEnd = monthNames[weekEnd.getMonth()];
+  const yearStart = currentWeekStart.getFullYear();
+  const yearEnd = weekEnd.getFullYear();
+  
+  let titleText = '';
+  if(monthStart === monthEnd && yearStart === yearEnd) {
+    titleText = `${currentWeekStart.getDate()}-${weekEnd.getDate()} ${monthStart} ${yearStart}`;
+  } else if(yearStart === yearEnd) {
+    titleText = `${currentWeekStart.getDate()} ${monthStart} - ${weekEnd.getDate()} ${monthEnd} ${yearStart}`;
+  } else {
+    titleText = `${currentWeekStart.getDate()} ${monthStart} ${yearStart} - ${weekEnd.getDate()} ${monthEnd} ${yearEnd}`;
+  }
+  
+  currentMonthEl.textContent = `📆 Semana: ${titleText}`;
+  calendarDays.innerHTML = '';
+  
+  // Generar 7 días
+  for(let i = 0; i < 7; i++) {
+    const date = new Date(currentWeekStart);
+    date.setDate(date.getDate() + i);
+    
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    
+    const today = new Date();
+    const isToday = year === today.getFullYear() && 
+                    month === today.getMonth() && 
+                    day === today.getDate();
+    
+    const dayEl = createDayElement(day, false, isToday, year, month);
+    calendarDays.appendChild(dayEl);
+  }
+}
+
+// ==================== FILTRADO POR RANGO DE FECHAS ====================
+
+// Obtener entrevistas entre dos fechas
+function getInterviewsByDateRange(startDate, endDate) {
+  return interviews.filter(i => {
+    if(!i.fecha) return false;
+    return i.fecha >= startDate && i.fecha <= endDate;
+  });
+}
+
+// Obtener las próximas N entrevistas
+function getNextNInterviews(n = 5) {
+  const today = getTodayDateStr();
+  const upcoming = interviews
+    .filter(i => i.fecha >= today && i.estado !== 'Cancelada')
+    .sort((a, b) => {
+      // Ordenar por fecha y luego por hora
+      if(a.fecha !== b.fecha) return a.fecha.localeCompare(b.fecha);
+      return (a.hora || '').localeCompare(b.hora || '');
+    })
+    .slice(0, n);
+  
+  return upcoming;
+}
+
+// Obtener entrevistas de esta semana
+function getThisWeekInterviews() {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  
+  // Obtener domingo de esta semana
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - dayOfWeek);
+  weekStart.setHours(0, 0, 0, 0);
+  
+  // Obtener sábado de esta semana
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
+  
+  const startStr = formatDateToYYYYMMDD(weekStart);
+  const endStr = formatDateToYYYYMMDD(weekEnd);
+  
+  return getInterviewsByDateRange(startStr, endStr);
+}
+
+// Obtener entrevistas de la próxima semana
+function getNextWeekInterviews() {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  
+  // Obtener domingo de la próxima semana
+  const nextWeekStart = new Date(today);
+  nextWeekStart.setDate(today.getDate() - dayOfWeek + 7);
+  nextWeekStart.setHours(0, 0, 0, 0);
+  
+  // Obtener sábado de la próxima semana
+  const nextWeekEnd = new Date(nextWeekStart);
+  nextWeekEnd.setDate(nextWeekStart.getDate() + 6);
+  nextWeekEnd.setHours(23, 59, 59, 999);
+  
+  const startStr = formatDateToYYYYMMDD(nextWeekStart);
+  const endStr = formatDateToYYYYMMDD(nextWeekEnd);
+  
+  return getInterviewsByDateRange(startStr, endStr);
+}
+
+// Helper: formatear fecha a YYYY-MM-DD
+function formatDateToYYYYMMDD(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Mostrar entrevistas filtradas en vista lista
+function showFilteredInterviews(filteredInterviews, title = 'Entrevistas Filtradas') {
+  // Guardar entrevistas filtradas para el calendario
+  window.interviewsFiltered = filteredInterviews.slice();
+  
+  viewMode = 'list';
+  $calendarView.classList.add('hidden');
+  $listView.classList.remove('hidden');
+  document.getElementById('viewIcon').textContent = '📅';
+  document.getElementById('viewText').textContent = 'Vista Calendario';
+  
+  // Actualizar título temporal si existe un elemento para ello
+  const sectionTitle = document.querySelector('.interviews-section h2');
+  if(sectionTitle) {
+    sectionTitle.textContent = `📅 ${title}`;
+    setTimeout(() => {
+      sectionTitle.textContent = '📅 Agenda de Entrevistas 2026';
+    }, 5000);
+  }
+  
+  renderInterviews(filteredInterviews);
+}
+
+// Funciones manejadoras para los botones de filtrado rápido
+function initQuickFilters() {
+  const showNextInterviewsBtn = document.getElementById('showNextInterviewsBtn');
+  const showThisWeekBtn = document.getElementById('showThisWeekBtn');
+  const showNextWeekBtn = document.getElementById('showNextWeekBtn');
+  
+  if(showNextInterviewsBtn) {
+    showNextInterviewsBtn.addEventListener('click', () => {
+      const nextInterviews = getNextNInterviews(5);
+      showFilteredInterviews(nextInterviews, 'Próximas 5 Entrevistas');
+      document.getElementById('filtersPanel').classList.add('hidden');
+    });
+  }
+  
+  if(showThisWeekBtn) {
+    showThisWeekBtn.addEventListener('click', () => {
+      const thisWeek = getThisWeekInterviews();
+      showFilteredInterviews(thisWeek, 'Entrevistas de Esta Semana');
+      document.getElementById('filtersPanel').classList.add('hidden');
+    });
+  }
+  
+  if(showNextWeekBtn) {
+    showNextWeekBtn.addEventListener('click', () => {
+      const nextWeek = getNextWeekInterviews();
+      showFilteredInterviews(nextWeek, 'Entrevistas de la Próxima Semana');
+      document.getElementById('filtersPanel').classList.add('hidden');
+    });
+  }
+}
+
+// renderNotes eliminada - sistema de recordatorios deshabilitado
 function renderNotes(list) {
-  if(!$notesList) return;
-  
-  // Aplicar filtros
-  const filtered = applyNotesFilters(list);
-  
-  // Actualizar contador en la campana
-  const counterEl = document.getElementById('notificationCounter');
-  if(counterEl) {
-    counterEl.textContent = filtered.length;
-    counterEl.classList.toggle('hidden', filtered.length === 0);
-  }
-  
-  $notesList.innerHTML = '';
-  
-  if(!filtered.length) {
-    $notesList.innerHTML = '<p>No hay recordatorios.</p>';
-    return;
-  }
-  
-  // Agrupar notas por prioridad
-  const priorityOrder = { 'URGENTE': 0, 'Alta': 1, 'Media': 2, 'Baja': 3 };
-  const sorted = [...filtered].sort((a, b) => {
-    const priorityA = priorityOrder[a.prioridad] || 4;
-    const priorityB = priorityOrder[b.prioridad] || 4;
-    return priorityA - priorityB;
-  });
-  
-  sorted.forEach(n => {
-    const card = document.createElement('article');
-    card.className = `note-card priority-${(n.prioridad || 'Media').toLowerCase()}`;
-    
-    // Colores por prioridad
-    let priorityColor = '#10b981'; // Baja
-    if(n.prioridad === 'Media') priorityColor = '#f59e0b'; // Naranja
-    if(n.prioridad === 'Alta') priorityColor = '#ef4444'; // Rojo
-    if(n.prioridad === 'URGENTE') priorityColor = '#dc2626'; // Rojo oscuro
-    
-    card.style.borderLeftColor = priorityColor;
-    
-    card.innerHTML = `
-      <div class="note-header">
-        <span class="note-type">${escapeHtml(n.tipo || '')}</span>
-        <span class="note-date">📅 ${n.fecha || ''}</span>
-      </div>
-      <div class="note-content">
-        <p>${escapeHtml(n.nota || '')}</p>
-        ${n.relacionadoA ? `<div class="note-related">👤 ${escapeHtml(n.relacionadoA)}</div>` : ''}
-      </div>
-      <div class="note-footer">
-        <span class="note-priority" style="background: ${priorityColor};">${escapeHtml(n.prioridad || '')}</span>
-      </div>
-    `;
-    $notesList.appendChild(card);
-  });
+  const $notesList = document.getElementById('notesList');
+  if (!$notesList) return;
+  $notesList.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px;">Sistema de recordatorios deshabilitado.</p>';
 }
 
-// Cargar notas del backend
+// loadNotes eliminada - sistema de recordatorios deshabilitado
 async function loadNotes() {
-  try {
-    const res = await fetch('/notes');
-    if(res.ok) {
-      const data = await res.json();
-      console.log('Notas recibidas:', data);
-      if(Array.isArray(data)) {
-        notes.length = 0;
-        data.forEach(n => notes.push(n));
-        renderNotes(notes);
-      }
-    }
-  } catch(err) {
-    console.warn('Error cargando notas:', err);
-  }
+  console.log('loadNotes(): sistema de recordatorios deshabilitado');
+  return;
 }
 
-// Guardar nota
+// Guardar nota: funcionalidad de creación de recordatorios eliminada
 async function saveNote(payload) {
-  try {
-    const noteId = payload.id || Date.now();
-    const res = await fetch('/notes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        id: noteId,
-        fecha: payload.fecha,
-        tipo: payload.tipo,
-        nota: payload.nota,
-        relacionadoA: payload.relacionadoA,
-        prioridad: payload.prioridad
-      })
-    });
-    
-    if(res.ok) {
-      console.log('Nota guardada');
-      
-      // Registrar en auditoría
-      await logAudit('CREATE', 'Note', noteId, 
-        `Nueva: ${payload.nota.substring(0, 50)}... (${payload.prioridad})`);
-      
-      notes.push(payload);
-      renderNotes(notes);
-      return true;
-    }
-  } catch(err) {
-    console.error('Error guardando nota:', err);
-    // Fallback local
-    notes.push(payload);
-    renderNotes(notes);
-  }
+  console.log('saveNote(): creación de recordatorios deshabilitada. Payload recibido:', payload);
+  return false;
 }
 
 // Exportar entrevistas a Excel
 function exportInterviewsToExcel() {
-  const data = interviews.map(i => ({
+  const listToExport = (currentRenderedInterviews && currentRenderedInterviews.length) ? currentRenderedInterviews : applyInterviewFilters(interviews);
+  const data = listToExport.map(i => ({
     'Nombre': i.nombre,
     'Fecha': i.fecha,
     'Hora': i.hora,
@@ -1053,33 +1590,41 @@ function exportInterviewsToExcel() {
   console.log('Entrevistas exportadas a Excel');
 }
 
-// Exportar notas a PDF
+// exportNotesToPDF eliminada - sistema de recordatorios deshabilitado
 function exportNotesToPDF() {
+  console.log('exportNotesToPDF(): función deshabilitada - sistema de recordatorios eliminado');
+  return false;
+}
+
+// Exportar entrevistas a PDF
+function exportInterviewsToPDF() {
+  const listToExport = (currentRenderedInterviews && currentRenderedInterviews.length) ? currentRenderedInterviews : applyInterviewFilters(interviews);
   const element = document.createElement('div');
   element.style.padding = '20px';
   element.innerHTML = `
-    <h1 style="color:#0b60d1;margin-bottom:20px;">Recordatorios — ${new Date().toLocaleDateString('es-ES')}</h1>
-    ${notes.map(n => `
-      <div style="margin-bottom:20px;padding:15px;border-left:4px solid ${n.prioridad === 'URGENTE' ? '#dc2626' : n.prioridad === 'Alta' ? '#ef4444' : n.prioridad === 'Media' ? '#f59e0b' : '#10b981'};background:#f9fafb;">
-        <h3 style="margin:0 0 10px;color:#083f9a;">${escapeHtml(n.tipo)}</h3>
-        <p style="margin:0 0 8px;"><strong>Fecha:</strong> ${escapeHtml(n.fecha)}</p>
-        <p style="margin:0 0 8px;"><strong>Prioridad:</strong> ${escapeHtml(n.prioridad)}</p>
-        <p style="margin:0 0 8px;"><strong>Nota:</strong> ${escapeHtml(n.nota)}</p>
-        ${n.relacionadoA ? `<p style="margin:0;"><strong>Relacionado a:</strong> ${escapeHtml(n.relacionadoA)}</p>` : ''}
+    <h1 style="color:#0b60d1;margin-bottom:20px;">Entrevistas — ${new Date().toLocaleDateString('es-ES')}</h1>
+    ${listToExport.map(it => `
+      <div style="margin-bottom:16px;padding:12px;border-left:4px solid ${it.estado === 'Cancelada' ? '#ef4444' : it.estado === 'Completada' ? '#10b981' : '#0b60d1'};background:#f9fafb;">
+        <h3 style="margin:0 0 6px;color:#083f9a;">${escapeHtml(it.nombre || it.titulo || 'Entrevista')}</h3>
+        <p style="margin:0 0 6px;"><strong>Fecha:</strong> ${escapeHtml(it.fecha || '')} ${it.hora ? ' - ' + escapeHtml(it.hora) : ''}</p>
+        <p style="margin:0 0 6px;"><strong>Entrevistador:</strong> ${escapeHtml(it.entrevistador || '')}</p>
+        <p style="margin:0 0 6px;"><strong>Lugar:</strong> ${escapeHtml(it.lugar || '')}</p>
+        <p style="margin:0 0 6px;"><strong>Notas:</strong> ${escapeHtml(it.notas || it.descripcion || '')}</p>
+        <p style="margin:0;"><strong>Estado:</strong> ${escapeHtml(it.estado || '')}</p>
       </div>
     `).join('')}
   `;
-  
+
   const opt = {
     margin: 10,
-    filename: `Recordatorios_${new Date().toLocaleDateString('es-ES')}.pdf`,
+    filename: `Entrevistas_${new Date().toLocaleDateString('es-ES')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2 },
     jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
   };
-  
+
   html2pdf().set(opt).from(element).save();
-  console.log('Recordatorios exportados a PDF');
+  console.log('Entrevistas exportadas a PDF');
 }
 
 // Sistema de Alertas y Notificaciones
@@ -1087,16 +1632,7 @@ function checkAlerts() {
   const today = getTodayDateStr();
   const alerts = [];
   
-  // Alertas de recordatorios URGENTES
-  const urgentNotes = notes.filter(n => n.prioridad === 'URGENTE');
-  if(urgentNotes.length > 0) {
-    alerts.push({
-      type: 'urgent-reminder',
-      count: urgentNotes.length,
-      message: `⚠️ Tienes ${urgentNotes.length} recordatorio(s) URGENTE(S)`,
-      items: urgentNotes.slice(0, 3)
-    });
-  }
+  // Alertas de recordatorios eliminadas - sistema deshabilitado
   
   // Alertas de entrevistas de hoy
   const todayInterviews = interviews.filter(i => i.fecha === today && i.estado !== 'Cancelada');
@@ -1132,16 +1668,7 @@ function checkAlerts() {
     });
   }
   
-  // Alertas de notas de Alta prioridad vencidas
-  const overduePriority = notes.filter(n => n.prioridad === 'Alta' && n.fecha < today);
-  if(overduePriority.length > 0) {
-    alerts.push({
-      type: 'overdue-priority',
-      count: overduePriority.length,
-      message: `⏰ ${overduePriority.length} tarea(s) de alta prioridad vencida(s)`,
-      items: overduePriority.slice(0, 3)
-    });
-  }
+  // Alertas de notas eliminadas - sistema de recordatorios deshabilitado
   
   return alerts;
 }
@@ -1411,6 +1938,9 @@ async function loadDataFromBackend(){
   if (typeof initCalendarNavigation === 'function') {
     initCalendarNavigation();
   }
+  if (typeof initQuickFilters === 'function') {
+    initQuickFilters();
+  }
 }
 
 // ==================== FUNCIONES DE PLANTILLAS ====================
@@ -1437,21 +1967,10 @@ function useTemplate(templateId) {
   return false;
 }
 
-// Duplicar nota existente
+// Duplicar nota deshabilitado (creación de recordatorios eliminada)
 function duplicateNote(noteId) {
-  const note = notes.find(n => String(n.id) === String(noteId));
-  if (!note) return;
-
-  const newNote = {
-    id: Date.now(),
-    fecha: note.fecha,
-    tipo: note.tipo,
-    nota: note.nota + ' (copia)',
-    relacionadoA: note.relacionadoA,
-    prioridad: note.prioridad
-  };
-
-  saveNote(newNote);
+  console.log('duplicateNote(): operación deshabilitada para noteId=', noteId);
+  return false;
 }
 
 // Renderizar lista de plantillas
@@ -1542,11 +2061,7 @@ const interviewFormPanel = document.getElementById('interviewFormPanel');
 const interviewForm = document.getElementById('interviewForm');
 const cancelInterviewForm = document.getElementById('cancelInterviewForm');
 
-// Notes elements
-const newNotesBtn = document.getElementById('newNotesBtn');
-const notesFormPanel = document.getElementById('notesFormPanel');
-const notesForm = document.getElementById('notesForm');
-const cancelNotesForm = document.getElementById('cancelNotesForm');
+// Notes elements (creation UI removed)
 const notificationBell = document.getElementById('notificationBell');
 
 // Filtros elements
@@ -1576,20 +2091,59 @@ if(toggleFiltersBtn) {
 
 // Event listener para aplicar filtros
 if(applyFiltersBtn) {
-  applyFiltersBtn.addEventListener('click', () => {
-    // Recopilar valores de filtros
-    activeFilters.states = Array.from(document.querySelectorAll('.filter-state:checked')).map(el => el.value);
-    activeFilters.entrevistador = document.getElementById('filterEntrevistador').value || '';
-    activeFilters.fechaDesde = document.getElementById('filterFechaDesde').value || '';
-    activeFilters.fechaHasta = document.getElementById('filterFechaHasta').value || '';
-    activeFilters.priorities = Array.from(document.querySelectorAll('.filter-priority:checked')).map(el => el.value);
-    
-    // Re-renderizar con filtros aplicados
-    const filteredInterviews = applyInterviewFilters(interviews);
-    renderInterviews(filteredInterviews, getTodayDateStr());
-    renderNotes(notes);
-    
-    filtersPanel.classList.add('hidden');
+  applyFiltersBtn.addEventListener('click', async () => {
+    try {
+      // Mostrar loader
+      const loader = createFilterLoader();
+      document.body.appendChild(loader);
+      
+      console.log('🔄 Iniciando aplicación de filtros...');
+      
+      // Recopilar valores de filtros
+      activeFilters.states = Array.from(document.querySelectorAll('.filter-state:checked')).map(el => el.value);
+      activeFilters.entrevistador = document.getElementById('filterEntrevistador').value || '';
+      activeFilters.fechaDesde = document.getElementById('filterFechaDesde').value || '';
+      activeFilters.fechaHasta = document.getElementById('filterFechaHasta').value || '';
+      
+      console.log('🔍 Filtros configurados:', activeFilters);
+      
+      // Simular pequeña pausa para mostrar el loader
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Re-renderizar con filtros aplicados
+      console.log('🔍 Total entrevistas disponibles:', interviews.length);
+      console.log('🔍 Array de entrevistas:', interviews);
+      
+      const filteredInterviews = applyInterviewFilters(interviews);
+      
+      // Guardar entrevistas filtradas para el calendario y otros componentes
+      window.interviewsFiltered = filteredInterviews.slice();
+      
+      console.log('📅 Actualizando vista de lista...');
+      renderInterviews(filteredInterviews, getTodayDateStr());
+      
+      console.log('📅 Actualizando calendario con filtros...');
+      renderCalendar(currentYear, currentMonth); // Actualizar calendario con filtros
+      
+      // Verificar que el calendario se actualizó
+      const calendarDays = document.querySelectorAll('.calendar-day.has-interview');
+      console.log('📅 Días con entrevistas en calendario después del filtro:', calendarDays.length);
+      
+      filtersPanel.classList.add('hidden');
+      
+      // Mostrar mensaje si no hay resultados
+      if(filteredInterviews.length === 0) {
+        showNoResultsMessage();
+      }
+      
+    } catch(error) {
+      console.error('❌ Error aplicando filtros:', error);
+      alert('Error al aplicar filtros: ' + error.message);
+    } finally {
+      // Ocultar loader
+      const loader = document.querySelector('.filter-loader');
+      if(loader) loader.remove();
+    }
   });
 }
 
@@ -1598,8 +2152,8 @@ if(clearFiltersBtn) {
   clearFiltersBtn.addEventListener('click', () => {
     // Reset filters
     document.querySelectorAll('.filter-state').forEach(el => el.checked = true);
-    document.querySelectorAll('.filter-priority').forEach(el => el.checked = true);
-    document.getElementById('filterEntrevistador').value = '';
+    const filterEntrevistador = document.getElementById('filterEntrevistador');
+    if(filterEntrevistador) filterEntrevistador.value = ''; // "Todos"
     document.getElementById('filterFechaDesde').value = '';
     document.getElementById('filterFechaHasta').value = '';
     
@@ -1608,18 +2162,132 @@ if(clearFiltersBtn) {
       entrevistador: '',
       fechaDesde: '',
       fechaHasta: '',
-      priorities: ['URGENTE', 'Alta', 'Media', 'Baja']
+      // priorities removed
     };
     
     // Re-renderizar sin filtros
+    window.interviewsFiltered = null; // Limpiar filtros guardados
     renderInterviews(interviews, getTodayDateStr());
-    renderNotes(notes);
+    renderCalendar(currentYear, currentMonth); // Actualizar calendario sin filtros
   });
 }
 
-// Botones de exportación
-const exportInterviewsBtn = document.getElementById('exportInterviewsBtn');
+// Crear loader para filtros
+function createFilterLoader() {
+  const loader = document.createElement('div');
+  loader.className = 'filter-loader';
+  loader.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: system-ui, sans-serif;
+  `;
+  
+  const spinner = document.createElement('div');
+  spinner.style.cssText = `
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  `;
+  
+  const text = document.createElement('span');
+  text.textContent = 'Aplicando filtros...';
+  text.style.color = '#374151';
+  
+  loader.appendChild(spinner);
+  loader.appendChild(text);
+  
+  // Add CSS animation
+  if(!document.querySelector('#spinner-style')) {
+    const style = document.createElement('style');
+    style.id = 'spinner-style';
+    style.textContent = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+    document.head.appendChild(style);
+  }
+  
+  return loader;
+}
+
+// Mostrar mensaje cuando no hay resultados
+function showNoResultsMessage() {
+  const message = document.createElement('div');
+  message.className = 'no-results-message';
+  message.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    color: #92400e;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+  `;
+  message.innerHTML = '⚠️ No se encontraron entrevistas con los filtros aplicados';
+  
+  document.body.appendChild(message);
+  
+  setTimeout(() => {
+    if(message.parentNode) message.remove();
+  }, 3000);
+  
+  // Add CSS animation
+  if(!document.querySelector('#slideIn-style')) {
+    const style = document.createElement('style');
+    style.id = 'slideIn-style';
+    style.textContent = '@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }';
+    document.head.appendChild(style);
+  }
+}
+
+// Botón de prueba de filtros
+const testFiltersBtn = document.getElementById('testFiltersBtn');
+if(testFiltersBtn) {
+  testFiltersBtn.addEventListener('click', async () => {
+    console.log('🧪 Probando filtros automáticamente...');
+    
+    // Configurar filtros de prueba: Obispo, Pendiente, rango de fechas
+    document.querySelector('.filter-state[value="Pendiente"]').checked = true;
+    document.querySelector('.filter-state[value="Completada"]').checked = false;
+    document.querySelector('.filter-state[value="Cancelada"]').checked = false;
+    
+    const filterEntrevistador = document.getElementById('filterEntrevistador');
+    if(filterEntrevistador) filterEntrevistador.value = 'Obispo';
+    
+    document.getElementById('filterFechaDesde').value = '2026-01-12';
+    document.getElementById('filterFechaHasta').value = '2026-01-18';
+    
+    console.log('🧪 Filtros configurados automáticamente. Aplicando...');
+    
+    // Simular click en aplicar filtros
+    const applyBtn = document.getElementById('applyFiltersBtn');
+    if(applyBtn) applyBtn.click();
+  });
+}
+
 const exportNotesBtn = document.getElementById('exportNotesBtn');
+
+// Manejar botón de imprimir reporte detallado
+const printBtn = document.getElementById('printBtn');
+if(printBtn) {
+  printBtn.addEventListener('click', () => {
+    generateDetailedInterviewReport();
+  });
+}
 
 if(exportInterviewsBtn) {
   exportInterviewsBtn.addEventListener('click', () => {
@@ -1633,11 +2301,11 @@ if(exportInterviewsBtn) {
 
 if(exportNotesBtn) {
   exportNotesBtn.addEventListener('click', () => {
-    if(notes.length === 0) {
-      alert('No hay recordatorios para exportar');
+    if(interviews.length === 0) {
+      alert('No hay entrevistas para exportar');
       return;
     }
-    exportNotesToPDF();
+    exportInterviewsToPDF();
   });
 }
 
@@ -1705,11 +2373,7 @@ function toggleInterviewForm(show=false){
   interviewFormPanel.setAttribute('aria-hidden', String(!show));
 }
 
-function toggleNotesForm(show=false){
-  if(!notesFormPanel) return;
-  notesFormPanel.classList.toggle('hidden', !show);
-  notesFormPanel.setAttribute('aria-hidden', String(!show));
-}
+// Notes creation form removed — no toggle function
 
 if(newInterviewBtn){ 
   newInterviewBtn.addEventListener('click', () => { 
@@ -1721,65 +2385,9 @@ if(newInterviewBtn){
 }
 if(cancelInterviewForm){ cancelInterviewForm.addEventListener('click', () => toggleInterviewForm(false)); }
 
-if(newNotesBtn){
-  newNotesBtn.addEventListener('click', () => {
-    notesForm.dataset.mode = 'create';
-    notesForm.reset();
-    // Establecer la fecha de hoy por defecto
-    notesForm.fecha.value = getTodayDateStr();
-    document.getElementById('notesFormTitle').textContent = 'Agregar Recordatorio';
-    toggleNotesForm(true);
-  });
-}
-if(cancelNotesForm){ cancelNotesForm.addEventListener('click', () => toggleNotesForm(false)); }
+// Notes creation UI removed — event handlers disabled
 
-// Manejar clic en botón editar (delegación de eventos)
-document.addEventListener('click', e => {
-  if(e.target.closest('.btn-edit')){
-    const btn = e.target.closest('.btn-edit');
-    const id = btn.dataset.id;
-    const report = reports.find(r => String(r.id) === String(id));
-    if(report){
-      reportForm.dataset.mode = 'edit';
-      reportForm.dataset.editId = id;
-      reportForm.title.value = report.title || '';
-      reportForm.description.value = report.description || '';
-      reportForm.date.value = report.date || '';
-      reportForm.link.value = report.link || '';
-      document.getElementById('formTitle').textContent = 'Editar reporte';
-      toggleForm(true);
-    }
-  }
-  
-  // Edit interview
-  if(e.target.closest('.btn-edit-interview')){
-    const btn = e.target.closest('.btn-edit-interview');
-    const id = btn.dataset.id;
-    const interview = interviews.find(i => String(i.id) === String(id));
-    if(interview){
-      interviewForm.dataset.mode = 'edit';
-      interviewForm.dataset.editId = id;
-      interviewForm.nombre.value = interview.nombre || '';
-      interviewForm.fecha.value = interview.fecha || '';
-      interviewForm.hora.value = interview.hora || '';
-      interviewForm.entrevistador.value = interview.entrevistador || '';
-      interviewForm.notas.value = interview.notas || '';
-      interviewForm.estado.value = interview.estado || 'Pendiente';
-      document.getElementById('interviewFormTitle').textContent = 'Editar entrevista';
-      toggleInterviewForm(true);
-    }
-  }
-
-  // Delete interview
-  if(e.target.closest('.btn-delete-interview')){
-    const btn = e.target.closest('.btn-delete-interview');
-    const id = btn.dataset.id;
-    const interview = interviews.find(i => String(i.id) === String(id));
-    if(interview && confirm(`¿Eliminar la entrevista de ${interview.nombre}?`)){
-      deleteInterview(id);
-    }
-  }
-});
+// Delegated interview edit/delete handlers moved to public/scripts/interviews.js
 
 if(reportForm){
   reportForm.addEventListener('submit', async e => {
@@ -1926,23 +2534,7 @@ if(interviewForm){
   });
 }
 
-if(notesForm){
-  notesForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const fd = new FormData(notesForm);
-    const payload = {
-      fecha: fd.get('fecha'),
-      tipo: fd.get('tipo'),
-      nota: fd.get('nota'),
-      relacionadoA: fd.get('relacionadoA'),
-      prioridad: fd.get('prioridad')
-    };
-    
-    await saveNote(payload);
-    toggleNotesForm(false);
-    notesForm.reset();
-  });
-}
+// Notes creation form submit removed (crear recordatorio deshabilitado)
 
   /* Google Sheets loader (GViz) */
   // Opcional: usa Google Sheets pública como base de datos.

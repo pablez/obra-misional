@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard — La Chimba</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="responsive-fixes.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div id="siteHeader"></div>
+
+  <main class="container">
+    <section class="dashboard-section">
+      <h2>📊 Dashboard de Estadísticas</h2>
+
+      <div class="kpis-grid">
+        <div class="kpi-card">
+          <div class="kpi-value" id="kpiTotalEntrevistas">0</div>
+          <div class="kpi-label">Total Entrevistas</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" id="kpiCompletadas">0</div>
+          <div class="kpi-label">Completadas</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" id="kpiPendientes">0</div>
+          <div class="kpi-label">Pendientes</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-value" id="kpiPorcentaje">0%</div>
+          <div class="kpi-label">Tasa Completación</div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-container">
+          <h4>Estado de Entrevistas</h4>
+          <canvas id="chartEstado"></canvas>
+        </div>
+        <div class="chart-container">
+          <h4>Top 5 Entrevistadores</h4>
+          <canvas id="chartEntrevistadores"></canvas>
+        </div>
+      </div>
+
+      <div class="top-interviewers">
+        <h4>Estadísticas por Entrevistador</h4>
+        <div id="topInterviewersList" class="interviewer-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="siteFooter"></div>
+
+  <script src="components/header-footer.js"></script>
+  <script src="script.js"></script>
+  <script src="scripts/interviews.js"></script>
+  <script src="components/core.js"></script>
+</body>
+</html>

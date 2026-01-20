@@ -1,0 +1,14 @@
+.interviews-section{margin-top:32px}
+.interviews-section h2{margin:0 0 12px;color:var(--accent-dark)}
+.interviews-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:16px}
+.interview-card{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 6px 18px rgba(14,30,37,0.06);border-left:4px solid var(--accent);position:relative}
+.interview-card.completada{border-left-color:#10b981;opacity:0.8}
+.interview-card.cancelada{border-left-color:#ef4444;opacity:0.7}
+.interview-card h4{margin:0 0 6px;color:var(--accent-dark);font-size:1.05rem}
+.interview-meta{display:flex;flex-direction:column;gap:4px;font-size:0.85rem;color:var(--muted);margin-bottom:10px}
+.interview-meta span{display:flex;align-items:center;gap:6px}
+.interview-status{display:inline-block;padding:4px 10px;border-radius:12px;font-size:0.8rem;font-weight:600;margin-top:8px}
+.interview-status.pendiente{background:#fef3c7;color:#92400e}
+.interview-status.completada{background:#d1fae5;color:#065f46}
+.interview-status.cancelada{background:#fee2e2;color:#991b1b}
+.interview-actions{display:flex;gap:8px;margin-top:12px}
